@@ -1,3 +1,18 @@
+# Read trade-matrix data by country
+# datasets <- list.files("../shiny_app_raw_data/trade_matrix/", full.names = T)
+# 
+# library(readr)
+# 
+# trade_data <- data.frame()
+# for (i in 1:length(datasets)) {
+#   df <- read_csv(datasets[i])
+#   #df <- read.csv(datasets[i])
+#   trade_data <- rbind(trade_data,df)
+# }
+# save(trade_data, file="trade_data.RData")
+load("trade_data.RData")
+library(stringr)
+names(trade_data) <- str_replace_all(names(trade_data), " ", ".")
 # 
 # 
 # # # Doanload data from FAOSTAT
@@ -60,6 +75,10 @@ load("grat_robin.RData")
 load("shape.RData")
 load("fao_world_centroids.RData")
 load("graticule.RData")
+
+# source("plot_map_gif.R")
+# source("plot_line_gif.R")
+
 
 # reg <- fao_world@data
 # data2 <- reg[c("FAO_CODE","RAF","LAC","RAP","REU","RNE","ADM0_NAME")]
