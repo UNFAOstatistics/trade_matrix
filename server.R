@@ -115,11 +115,7 @@ shinyServer(function(input, output, session) {
   ### --------------------------------------------------------------------- ###
   ##-- Export Map
   
-  output$mytable = renderDataTable({
-    #fao_data_export()
-    dat  <- fao_data_export()
-    dat[dat$Year == input$yearData,]
-  },options = list(pageLength = 10))
+
   
 
   #output$map <- reactivePlot(function() {
@@ -217,11 +213,11 @@ shinyServer(function(input, output, session) {
     
     
     if (input$dataType == "Export") {
-      lines_export <- geom_line(data=greatcircles_import,aes(long,lat,group=group, color="Export"), size=.5,alpha=.4)
+      lines_export <- geom_line(data=greatcircles_import,aes(long,lat,group=group, alpha=Value), size=.5, color="Steel Blue", show_legend=F)
       points_export <- geom_point(data=fortifiedpartners_import, aes(long,lat,size=Value),color="Steel Blue", shape=1)
       names_export <- geom_text(data=fortifiedpartners_import, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=3, alpha=.8, family="Open Sans")
       title_exp <- "export"
-      colors <- scale_color_manual(values="Steel Blue")
+      #colors <- scale_color_manual(values="Steel Blue")
       lines_import <- element_blank()
       points_import <- element_blank()
       names_import <- element_blank()
@@ -231,22 +227,22 @@ shinyServer(function(input, output, session) {
       lines_export <- element_blank()
       points_export <- element_blank()
       names_export <- element_blank()
-      colors <- scale_color_manual(values="#FF3300")
-      lines_import <- geom_line(data=greatcircles_export,aes(long,lat,group=group, color="Import"), size=.5,alpha=.4)
+      #colors <- scale_color_manual(values="#FF3300")
+      lines_import <- geom_line(data=greatcircles_export,aes(long,lat,group=group, alpha=Value), size=.5, color="#FF3300", show_legend=F)
       points_import <- geom_point(data=fortifiedpartners_export, aes(long,lat,size=Value),color="#FF3300", shape=1)
       names_import <- geom_text(data=fortifiedpartners_export, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=3, alpha=.8)
       title_exp <- "import"
     }
     if (input$dataType == "Both") {
 
-      lines_export <- geom_line(data=greatcircles_import,aes(long,lat,group=group, color="Export"), size=.5,alpha=.4)
+      lines_export <- geom_line(data=greatcircles_import,aes(long,lat,group=group, alpha=Value), size=.5, color="Steel Blue", show_legend=F)
       points_export <- geom_point(data=fortifiedpartners_import, aes(long,lat,size=Value),color="Steel Blue", shape=1)
       names_export <- geom_text(data=fortifiedpartners_import, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=3, alpha=.8)
-      lines_import <- geom_line(data=greatcircles_export,aes(long,lat,group=group, color="Import"), size=.5,alpha=.4)
+      lines_import <- geom_line(data=greatcircles_export,aes(long,lat,group=group, alpha=Value), size=.5, color="#FF3300", show_legend=F)
       points_import <- geom_point(data=fortifiedpartners_export, aes(long,lat,size=Value),color="#FF3300", shape=1)
       names_import <- geom_text(data=fortifiedpartners_export, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=3, alpha=.8)
       title_exp <- "exports and imports"
-      colors <- scale_color_manual(values=c("Steel Blue","#FF3300"))
+      #colors <- scale_color_manual(values=c("Steel Blue","#FF3300"))
 
     }
     
@@ -272,7 +268,7 @@ shinyServer(function(input, output, session) {
     # 
     p <- p + scale_size(name = legend_title, range = c(1,6))
     p <- p + coord_equal()
-    p <- p + colors
+    #p <- p + colors
     p <- p + labs(title = paste(input$reporterCountry,"-",title_exp,"of",input$itemName,"in",year),
                   x=NULL, 
                   y=NULL)
@@ -299,26 +295,7 @@ shinyServer(function(input, output, session) {
     #p <- p + theme(legend.position = "none")
     #p <- p + annotate("text", x = Inf, y = -Inf, label = paste0("Year ",year),hjust=2, vjust=-4.5, col="#5087CE", cex=8,fontface = "bold", alpha = 0.4)
     #p <- p + annotate("text", x = Inf, y = -Inf, label = "*countries with less than 50 tonnes excluded", hjust=1.5, vjust=-1.0, col="Dim Grey", cex=3,fontface = "bold", alpha = 0.6)
-    #p
-    
-    
-    # barchart
-    if (max(df_import$Value) > max(df_export$Value)) {
-      bar_height <- max(df_import$Value)
-    }
-    if (max(df_import$Value) < max(df_export$Value)) {
-      bar_height <- max(df_export$Value)
-    }
-    
-    
-    export_sum <- sum(df_export$Value, na.rm = TRUE)
-    import_sum <- sum(df_import$Value, na.rm = TRUE)
-    
-    bardata <- data.frame(names = c("export","import"),
-                          total = c(export_sum,import_sum))
-    
-    b <- ggplot(bardata, aes(x=names,y=total)) + geom_bar(stat="identity") + coord_cartesian(ylim=c(0,bar_height))
-    grid.arrange(arrangeGrob(p,b, widths=c(4/5, 1/5), ncol=2))
+    p
     
     
 
@@ -328,6 +305,86 @@ shinyServer(function(input, output, session) {
   output$export_map <- reactivePlot(function(){
     plotInputMapExport()
   })
+  
+  plotInputSumLine <- reactive({
+    
+    df_export <- fao_data_export()
+    maxyear <- max(df_export$Year)
+    minyear <- min(df_export$Year)
+    df_export <- df_export[df_export$Year <= input$yearData,]
+   
+    df_import <- fao_data_import()
+    df_import <- df_import[df_import$Year <= input$yearData,]
+   
+  exp_sum <- df_export %>% 
+    group_by(Year) %>% 
+    dplyr::summarise(sum = sum(Value, na.rm = TRUE))
+  exp_sum$var <- "Total Export"
+  
+  imp_sum <- df_import %>% 
+    group_by(Year) %>% 
+    dplyr::summarise(sum = sum(Value, na.rm = TRUE))
+  imp_sum$var <- "Total Import"
+    
+  plot_data <- rbind(exp_sum,imp_sum)
+  
+  p <- ggplot(plot_data, aes(x=Year,y=sum,color=var))
+  p <- p + geom_point() + geom_line()
+  p <- p + coord_cartesian(xlim=c(minyear,maxyear))
+  p <- p + scale_x_continuous(breaks=minyear:maxyear)
+  p <- p + geom_vline(xintercept=input$yearData, color="Dim Grey", alpha=.4, linetype="dashed")
+  p <- p + labs(title = paste(input$reporterCountry,"-","Total export and import of",input$itemName),
+                x=NULL, 
+                y= "")
+  p <- p + scale_color_manual(values=c("Steel Blue","#FF3300"))
+  p <- p + theme(legend.position = "top",
+                 legend.justification=c(0,0),
+                 legend.key.size=unit(5,'mm'),
+                 legend.key = element_blank(),
+                 legend.direction = "horizontal",
+                 legend.background=element_rect(colour=NA, fill=NA),
+                 #text = element_text(family = "Open Sans"),
+                 legend.text=element_text(size=11),
+                 legend.title=element_blank(),
+                 title=element_text(size=12, color="Dim Grey"),
+                 #panel.grid.minor=element_blank(),
+                 #panel.grid.major=element_blank(),
+                 panel.background = element_blank(),
+                 plot.background = element_blank()
+                 #axis.text = element_blank(),
+                 #axis.ticks = element_blank()#,
+                 #plot.margin = unit(c(-3,-1.5, -3, -1.5), "cm")#,
+                 #text=element_text(family = "Open Sans")
+  )
+  p
+  })
+  
+  output$sumLine <- reactivePlot(function(){
+    plotInputSumLine()
+  })
+  
+  
+  output$mytable = renderDataTable({
+    
+    
+    df_export <- fao_data_export()
+    df_export <- df_export[df_export$Year <= input$yearData,]
+    
+    df_import <- fao_data_import()
+    df_import <- df_import[df_import$Year <= input$yearData,]
+    
+    exp_sum <- df_export %>% 
+      group_by(Year) %>% 
+      dplyr::summarise(sum = sum(Value, na.rm = TRUE))
+    exp_sum$var <- "Total Export"
+    
+    imp_sum
+    
+  },options = list(pageLength = 10))
+  
+  
+  
+  
   
   output$export_map2 <- reactivePlot(function(){
     plot(cars)

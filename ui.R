@@ -16,13 +16,13 @@ shinyUI(fluidPage(
                                 
                                 tags$head(
                                   # Include our custom CSS
-                                  includeCSS("styles.css"),
+                                  includeCSS("styles.css")#,
                                                   # Hide the red error messages!!!
-                                  tags$style(type="text/css",
-                                             ".shiny-output-error { visibility: hidden; }",
-                                             ".shiny-output-error:before { visibility: hidden; }",
-                                             ".outputRow{height:550px}"
-                                  )
+#                                   tags$style(type="text/css",
+#                                              ".shiny-output-error { visibility: hidden; }",
+#                                              ".shiny-output-error:before { visibility: hidden; }",
+#                                              ".outputRow{height:550px}"
+#                                   )
                                 ), 
 
                                 
@@ -52,8 +52,12 @@ shinyUI(fluidPage(
                                   
                                   mainPanel(
                                     tabsetPanel(
-                                      tabPanel("Map", plotOutput("export_map",height="700px", width="auto")),
-                                      tabPanel("Time-series", plotOutput("export_timeseries",height="700px", width="auto"))
+                                      tabPanel("Map", plotOutput("export_map",height="600", width="auto"),
+                                               plotOutput("sumLine",height="250px", width="auto")),
+                                      tabPanel("Time-series", plotOutput("export_timeseries",height="700px", width="auto")),
+                                      tabPanel("Table", dataTableOutput("mytable"))
+                                      
+                                      
                                     )
                                   )
                                 )
