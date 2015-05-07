@@ -29,7 +29,7 @@ shinyServer(function(input, output, session) {
   output$reporter_country <- renderUI({
     
     reporter_countries <- unique(trade_data$Reporter.Countries)
-    opts <- selectInput("reporterCountry", "Pick a reporter country:",
+    opts <- selectInput("reporterCountry", tags$p("Pick a reporter country:"),
                         choices = reporter_countries, selected=reporter_countries[1])
     list(opts)
   })
@@ -54,7 +54,7 @@ shinyServer(function(input, output, session) {
     #item_list <- item_list[!is.na(item_list)]
     #item_list <- topItems
     #item_list <- allItems
-    opts <- selectInput("itemName", "Pick an Item:",
+    opts <- selectInput("itemName", tags$p("Pick an Item:"),
                         choices = topItems)
     list(opts)
   })
@@ -66,7 +66,7 @@ shinyServer(function(input, output, session) {
   output$element <- renderUI({
     
     values <- c("Quantity","Value")
-    opts <- selectInput("elementName", "Pick an Element:",
+    opts <- selectInput("elementName", tags$p("Pick an Element:"),
                         choices = values, selected=values[1])
     list(opts)
   })
@@ -93,7 +93,7 @@ shinyServer(function(input, output, session) {
     maxim <- max(data$Year)
     minim <- min(data$Year)
     med <- median(data$Year)
-    opts <- sliderInput("yearData", "Pick a year", min = minim, max = maxim, value = med, step = 1, animate=animationOptions(interval = 2000, loop = TRUE, playButton = NULL, pauseButton = NULL))
+    opts <- sliderInput("yearData", tags$p("Pick a year"), min = minim, max = maxim, value = med, step = 1, animate=animationOptions(interval = 4000, loop = TRUE, playButton = NULL, pauseButton = NULL))
     list(opts)
   })
   
@@ -213,7 +213,7 @@ shinyServer(function(input, output, session) {
     
     
     if (input$dataType == "Export") {
-      lines_export <- geom_line(data=greatcircles_import,aes(long,lat,group=group, alpha=Value), size=.5, color="Steel Blue", show_legend=F)
+      lines_export <- geom_line(data=greatcircles_import,aes(long,lat,group=group, alpha=Value), size=.5, color="Steel Blue", show_guide = FALSE)
       points_export <- geom_point(data=fortifiedpartners_import, aes(long,lat,size=Value),color="Steel Blue", shape=1)
       names_export <- geom_text(data=fortifiedpartners_import, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=3, alpha=.8, family="Open Sans")
       title_exp <- "export"
@@ -228,17 +228,17 @@ shinyServer(function(input, output, session) {
       points_export <- element_blank()
       names_export <- element_blank()
       #colors <- scale_color_manual(values="#FF3300")
-      lines_import <- geom_line(data=greatcircles_export,aes(long,lat,group=group, alpha=Value), size=.5, color="#FF3300", show_legend=F)
+      lines_import <- geom_line(data=greatcircles_export,aes(long,lat,group=group, alpha=Value), size=.5, color="#FF3300", show_guide = FALSE)
       points_import <- geom_point(data=fortifiedpartners_export, aes(long,lat,size=Value),color="#FF3300", shape=1)
       names_import <- geom_text(data=fortifiedpartners_export, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=3, alpha=.8)
       title_exp <- "import"
     }
     if (input$dataType == "Both") {
 
-      lines_export <- geom_line(data=greatcircles_import,aes(long,lat,group=group, alpha=Value), size=.5, color="Steel Blue", show_legend=F)
+      lines_export <- geom_line(data=greatcircles_import,aes(long,lat,group=group, alpha=Value), size=.5, color="Steel Blue", show_guide = FALSE)
       points_export <- geom_point(data=fortifiedpartners_import, aes(long,lat,size=Value),color="Steel Blue", shape=1)
       names_export <- geom_text(data=fortifiedpartners_import, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=3, alpha=.8)
-      lines_import <- geom_line(data=greatcircles_export,aes(long,lat,group=group, alpha=Value), size=.5, color="#FF3300", show_legend=F)
+      lines_import <- geom_line(data=greatcircles_export,aes(long,lat,group=group, alpha=Value), size=.5, color="#FF3300", show_guide = FALSE)
       points_import <- geom_point(data=fortifiedpartners_export, aes(long,lat,size=Value),color="#FF3300", shape=1)
       names_import <- geom_text(data=fortifiedpartners_export, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=3, alpha=.8)
       title_exp <- "exports and imports"
@@ -311,10 +311,10 @@ shinyServer(function(input, output, session) {
     df_export <- fao_data_export()
     maxyear <- max(df_export$Year)
     minyear <- min(df_export$Year)
-    df_export <- df_export[df_export$Year <= input$yearData,]
+    #df_export <- df_export[df_export$Year <= input$yearData,]
    
     df_import <- fao_data_import()
-    df_import <- df_import[df_import$Year <= input$yearData,]
+    #df_import <- df_import[df_import$Year <= input$yearData,]
    
   exp_sum <- df_export %>% 
     group_by(Year) %>% 
@@ -325,19 +325,56 @@ shinyServer(function(input, output, session) {
     group_by(Year) %>% 
     dplyr::summarise(sum = sum(Value, na.rm = TRUE))
   imp_sum$var <- "Total Import"
+  
+  
+  if (input$dataType == "Export") {
+    lines_export <- geom_line(data=exp_sum,aes(x=Year,y=sum,color="Export"), size=.5, alpha=.4)
+    points_export <- geom_point(data=exp_sum,aes(x=Year,y=sum), color="Steel Blue", size=2, show_guide = FALSE, alpha=.4)
+    colors <- scale_color_manual(values="Steel Blue")
+    lines_import <- element_blank()
+    points_import <- element_blank()
+    title_exp <- "exports"
+  }
+  if (input$dataType == "Import") {
+    lines_export <- element_blank()
+    points_export <- element_blank()
+    colors <- scale_color_manual(values="#FF3300")
+    lines_import <- geom_line(data=imp_sum,aes(x=Year,y=sum,color="Import"), size=.5, alpha=.4)
+    points_import <- geom_point(data=imp_sum,aes(x=Year,y=sum), color="#FF3300", size=2, show_guide = FALSE, alpha=.4)
+    title_exp <- "imports"
+  }
+  if (input$dataType == "Both") {
+    lines_import <- geom_line(data=imp_sum,aes(x=Year,y=sum,color="Import"), size=.5, alpha=.4)
+    points_import <- geom_point(data=imp_sum,aes(x=Year,y=sum), color="#FF3300", size=2, show_guide = FALSE, alpha=.4)
+    lines_export <- geom_line(data=exp_sum,aes(x=Year,y=sum,color="Export"), size=.5, alpha=.4)
+    points_export <- geom_point(data=exp_sum,aes(x=Year,y=sum), color="Steel Blue", size=2, show_guide = FALSE, alpha=.4)
+    title_exp <- "exports and imports"
+    colors <- scale_color_manual(values=c("Steel Blue","#FF3300"))
+    
+    
+  }
+
+  if (input$elementName == "Quantity") legend_title <- "Quantity in tonnes"
+  if (input$elementName == "Value") legend_title <- "Value in 1000 US$"
+  
     
   plot_data <- rbind(exp_sum,imp_sum)
   
-  p <- ggplot(plot_data, aes(x=Year,y=sum,color=var))
-  p <- p + geom_point() + geom_line()
+  #p <- ggplot(plot_data, aes(x=Year,y=sum,color=var))
+  p <- ggplot()
+  p <- p + lines_export + points_export #+ names_export
+  p <- p + lines_import + points_import #+ names_import
+  #p <- p + geom_point() + geom_line()
+  p <- p + colors
   p <- p + coord_cartesian(xlim=c(minyear,maxyear))
   p <- p + scale_x_continuous(breaks=minyear:maxyear)
-  p <- p + geom_vline(xintercept=input$yearData, color="Dim Grey", alpha=.4, linetype="dashed")
-  p <- p + labs(title = paste(input$reporterCountry,"-","Total export and import of",input$itemName),
+  p <- p + geom_vline(xintercept=input$yearData, color="black", alpha=.4, linetype="dashed")
+  p <- p + labs(title = paste(input$reporterCountry,"-","Total",title_exp,"of \n",input$itemName),
                 x=NULL, 
-                y= "")
-  p <- p + scale_color_manual(values=c("Steel Blue","#FF3300"))
+                y= legend_title)
+  #p <- p + scale_color_manual(values=c("Steel Blue","#FF3300"))
   p <- p + theme(legend.position = "top",
+                 axis.text.x  = element_text(angle=90, vjust= 0.5),
                  legend.justification=c(0,0),
                  legend.key.size=unit(5,'mm'),
                  legend.key = element_blank(),
@@ -362,6 +399,14 @@ shinyServer(function(input, output, session) {
   output$sumLine <- reactivePlot(function(){
     plotInputSumLine()
   })
+  
+  output$dlSumLine <- downloadHandler(
+    filename = 'timeseries.pdf',
+    content = function(file) {
+      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
+      ggsave(file, plot = plotInputSumLine(), device = device)
+    }
+  )
   
   
   output$mytable = renderDataTable({
@@ -508,7 +553,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$dlTimeseries <- downloadHandler(
-    filename = 'timeseries.pdf',
+    filename = 'timeseries_by_country.pdf',
     content = function(file) {
       device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
       ggsave(file, plot = plotInputTimeseries(), device = device)

@@ -16,13 +16,13 @@ shinyUI(fluidPage(
                                 
                                 tags$head(
                                   # Include our custom CSS
-                                  includeCSS("styles.css")#,
+                                  includeCSS("styles.css"),
                                                   # Hide the red error messages!!!
-#                                   tags$style(type="text/css",
-#                                              ".shiny-output-error { visibility: hidden; }",
-#                                              ".shiny-output-error:before { visibility: hidden; }",
-#                                              ".outputRow{height:550px}"
-#                                   )
+                                  tags$style(type="text/css",
+                                             ".shiny-output-error { visibility: hidden; }",
+                                             ".shiny-output-error:before { visibility: hidden; }",
+                                             ".outputRow{height:550px}"
+                                  )
                                 ), 
 
                                 
@@ -30,36 +30,93 @@ shinyUI(fluidPage(
                                 #plotOutput("export_map", height="700px", width="auto"),
 
 
-                                sidebarLayout(
+#                                 sidebarLayout(
+#                                   
+#                                   sidebarPanel(
+#                                     tags$h4("Hello world"), 
+#                                     tags$p("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras semper, metus ac convallis vestibulum, elit arcu imperdiet neque, nec interdum quam dolor at libero."),
+#                                     tags$br(),
+#                                     uiOutput("reporter_country"),
+#                                     uiOutput("item"),
+#                                     uiOutput("element"),
+#                                     tags$hr(),
+#                                     radioButtons("dataType", label = "Show",inline = TRUE, choices = list("Import", "Export", "Both"), selected = "Import"),
+#                                     uiOutput("year_data"),
+#                                     downloadButton('dlMap', 'Save map in A4 vector pdf'),
+#                                     downloadButton('dlTimeseries', 'Save time-series in A4 vector pdf'),
+#                                     tags$br(),
+#                                     tags$br(),
+#                                     tags$p("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras semper, metus ac convallis vestibulum, elit arcu imperdiet neque, nec interdum quam dolor at libero."),
+#                                     tags$img(src="http://koti.kapsi.fi/~muuankarski/fao/visualisation/gif/logo200.png")
+#                                   ),
                                   
-                                  sidebarPanel(
-                                    tags$h4("Hello world"), 
-                                    tags$p("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras semper, metus ac convallis vestibulum, elit arcu imperdiet neque, nec interdum quam dolor at libero."),
-                                    tags$br(),
-                                    uiOutput("reporter_country"),
-                                    uiOutput("item"),
-                                    uiOutput("element"),
-                                    tags$hr(),
-                                    radioButtons("dataType", label = "Show",inline = TRUE, choices = list("Import", "Export", "Both"), selected = "Import"),
-                                    uiOutput("year_data"),
-                                    downloadButton('dlMap', 'Save map in A4 vector pdf'),
-                                    downloadButton('dlTimeseries', 'Save time-series in A4 vector pdf'),
-                                    tags$br(),
-                                    tags$br(),
-                                    tags$p("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras semper, metus ac convallis vestibulum, elit arcu imperdiet neque, nec interdum quam dolor at libero."),
-                                    tags$img(src="http://koti.kapsi.fi/~muuankarski/fao/visualisation/gif/logo200.png")
+                                  #mainPanel(
+                                    #tabsetPanel(
+                                    #  tabPanel(
+
+                                  fluidRow(
+                                    shiny::column(4, radioButtons("dataType", tags$p("Show"),inline = TRUE, choices = list("Import", "Export", "Both"), selected = "Import")),
+                                    shiny::column(4, uiOutput("reporter_country")),
+                                    shiny::column(4, uiOutput("element"))
                                   ),
-                                  
-                                  mainPanel(
-                                    tabsetPanel(
-                                      tabPanel("Map", plotOutput("export_map",height="600", width="auto"),
-                                               plotOutput("sumLine",height="250px", width="auto")),
-                                      tabPanel("Time-series", plotOutput("export_timeseries",height="700px", width="auto")),
-                                      tabPanel("Table", dataTableOutput("mytable"))
-                                      
-                                      
-                                    )
+                                  fluidRow(
+                                    shiny::column(4, uiOutput("year_data")),
+                                    shiny::column(4, uiOutput("item")),
+                                    shiny::column(4, tags$p("Download:"),
+                                                  downloadButton('dlMap', 'Map'),
+                                                  downloadButton('dlSumLine', 'Time-series'),
+                                                  downloadButton('dlTimeseries', 'Time-series by country')
+                                                  )
+                                  ),
+#                                   fluidRow(
+#                                     shiny::column(8, plotOutput("export_map",height="650px", width="auto")),
+#                                     shiny::column(4, plotOutput("sumLine",height="650px", width="auto"))
+#                                   ),
+#                                   mainPanel(
+#                                         tabsetPanel(tabPanel("Map", plotOutput("export_map",height="800px", width="auto")),
+#                                                     tabPanel("Sum lines", plotOutput("sumline",height="800px", width="auto")),
+#                                                     tabPanel("Time-series", plotOutput("export_timeseries",height="800px", width="auto"))
+#                                             )
+#                                         ),
+
+tabsetPanel(tabPanel("Map", plotOutput("export_map",height="750px", width="auto")),
+            tabPanel("Time-series", plotOutput("sumLine",height="500px", width="auto")),
+            tabPanel("Time-series by partner country", plotOutput("export_timeseries",height="500px", width="auto"))
+                                                         ),
+
+#                                  plotOutput("export_map", height="700px", width="auto"),
+
+                                  fluidRow(
+                                    shiny::column(6, tags$h4("Hello world"), 
+                                                  tags$p("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras semper, metus ac convallis vestibulum, elit arcu imperdiet neque, nec interdum quam dolor at libero.")),
+                                    shiny::column(6, tags$br(),tags$br(),tags$img(src="http://koti.kapsi.fi/~muuankarski/fao/visualisation/gif/logo200.png"))
                                   )
+                                
+
+
+
+
+
+
+#                                 sidebarLayout(
+#                                   
+#                                   sidebarPanel(
+#                                     tags$h4("Hello world"), 
+#                                     tags$p("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras semper, metus ac convallis vestibulum, elit arcu imperdiet neque, nec interdum quam dolor at libero."),
+#                                     tags$br(),
+#                                     uiOutput("reporter_country"),
+#                                     uiOutput("item"),
+#                                     uiOutput("element"),
+#                                     tags$hr(),
+#                                     radioButtons("dataType", label = "Show",inline = TRUE, choices = list("Import", "Export", "Both"), selected = "Import"),
+#                                     uiOutput("year_data"),
+#                                     downloadButton('dlMap', 'Save map in A4 vector pdf'),
+#                                     downloadButton('dlTimeseries', 'Save time-series in A4 vector pdf'),
+#                                     tags$br(),
+#                                     tags$br(),
+#                                     tags$p("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras semper, metus ac convallis vestibulum, elit arcu imperdiet neque, nec interdum quam dolor at libero."),
+#                                     tags$img(src="http://koti.kapsi.fi/~muuankarski/fao/visualisation/gif/logo200.png")
+#                                   ),
                                 )
 #                                 fluidRow(
 #                                   shiny::column(4, tags$h4("Hello world"), 
@@ -173,4 +230,4 @@ shinyUI(fluidPage(
 # #                                                 tags$br(),
 # #                                                 downloadButton('dlDataMap', 'Download data'))
 
-))
+)
