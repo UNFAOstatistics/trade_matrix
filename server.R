@@ -29,7 +29,7 @@ shinyServer(function(input, output, session) {
   output$reporter_country <- renderUI({
     
     reporter_countries <- unique(trade_data$Reporter.Countries)
-    opts <- selectInput("reporterCountry", tags$p("Pick a reporter country:"),
+    opts <- selectInput("reporterCountry", tags$h4("Pick a reporter country:"),
                         choices = reporter_countries, selected=reporter_countries[1])
     list(opts)
   })
@@ -40,22 +40,52 @@ shinyServer(function(input, output, session) {
   
   output$item <- renderUI({
     
-    dataa <- trade_data[trade_data$Reporter.Countries == input$reporterCountry, ]
+    fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
+    dataa <- trade_data[trade_data$Reporter.Country.Code == fao_code, ]
     
-    #dataa <- trade_data[trade_data$Reporter.Countries == "Italy", ]
-    dataa <- dataa[dataa$Year == max(dataa$Year),]
-    itemOrder <- dataa %>% 
-      group_by(Item) %>% 
-      dplyr::summarise(n = n())
-    itemOrder <- arrange(itemOrder, -n)
-    topItems <- itemOrder$Item
-    allItems <- sort(unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry, ]$Item))
-    item_list <- c(topItems,"----",allItems)
+    if (input$dataType == "Import") {
+
+      itemData <- dataa[dataa$Element %in% c("Import Quantity","Import Value"),]
+      itemOrder <- itemData %>% 
+        filter(Element == "Import Value") %>% 
+        group_by(Item) %>% 
+        dplyr::summarise(sum = sum(Value)) %>% 
+        arrange(-sum)
+      
+      itemList <- itemOrder$Item
+      
+    }
+    if (input$dataType == "Export") {
+      itemData <- dataa[dataa$Element %in% c("Export Quantity","Export Value"),]
+      
+      itemOrder <- itemData %>% 
+        filter(Element == "Export Value") %>% 
+        group_by(Item) %>% 
+        dplyr::summarise(sum = sum(Value)) %>% 
+        arrange(-sum)
+      
+      itemList <- itemOrder$Item
+    }
+    if (input$dataType == "Both") {
+      
+      items_exp <- unique(dataa[dataa$Element %in% c("Export Quantity","Export Value"),]$Item)
+      items_imp <- unique(dataa[dataa$Element %in% c("Import Quantity","import Value"),]$Item)
+      itemList <- items_exp[items_exp %in% items_imp]
+      #dataa <- dataa[dataa$Item %in% items_common,]
+      }
+    #dataa <- trade_data[trade_data$Reporter.Countries == "Argentina", ]
+#     dataa <- dataa[dataa$Year == max(dataa$Year),]
+#     itemList <- unique(dataa$Item)
+#     itemOrder <- dataa %>% 
+#       group_by(Item) %>% 
+#       dplyr::summarise(n = n())
+#     itemOrder <- arrange(itemOrder, -n)
+#     topItems <- itemOrder$Item
     #item_list <- item_list[!is.na(item_list)]
     #item_list <- topItems
     #item_list <- allItems
-    opts <- selectInput("itemName", tags$p("Pick an Item:"),
-                        choices = topItems)
+    opts <- selectInput("itemName", tags$h4("Pick an Item:"),
+                        choices = itemList, selected = itemList[1])
     list(opts)
   })
   
@@ -66,8 +96,8 @@ shinyServer(function(input, output, session) {
   output$element <- renderUI({
     
     values <- c("Quantity","Value")
-    opts <- selectInput("elementName", tags$p("Pick an Element:"),
-                        choices = values, selected=values[1])
+    opts <- selectInput("elementName", tags$h4("Pick an Element:"),
+                        choices = values, selected=values[2])
     list(opts)
   })
   
@@ -77,7 +107,11 @@ shinyServer(function(input, output, session) {
   
   fao_data_export <- reactive({
     
-    df <- trade_data[trade_data$Reporter.Countries == input$reporterCountry & trade_data$Item == input$itemName,]
+    #df <- trade_data[trade_data$Reporter.Countries == input$reporterCountry & trade_data$Item == input$itemName,]
+    
+    fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
+    df <- trade_data[trade_data$Reporter.Country.Code == fao_code & trade_data$Item == input$itemName, ]
+    
     if (input$elementName == "Value") df <- df[df$Element == "Export Value",]
     if (input$elementName == "Quantity") df <- df[df$Element == "Export Quantity",]
     df
@@ -88,12 +122,23 @@ shinyServer(function(input, output, session) {
   
   output$year_data <- renderUI({
     
-    data <- fao_data_export()
+    if (input$dataType == "Import") data <- fao_data_import()
+    if (input$dataType == "Export") data <- fao_data_export()
+    if (input$dataType == "Both") data <- fao_data_export()
+#     if (input$dataType == "Both") {
+#       
+#       items_exp <- unique(dataa[dataa$Element %in% c("Export Quantity","Export Value"),]$Item)
+#       items_imp <- unique(dataa[dataa$Element %in% c("Import Quantity","import Value"),]$Item)
+#       items_common <- items_exp[items_exp %in% items_imp]
+#       dataa <- dataa[dataa$Item %in% items_common,]
+#     }
+
     data <- data[!is.na(data$Year),]
     maxim <- max(data$Year)
     minim <- min(data$Year)
-    med <- median(data$Year)
-    opts <- sliderInput("yearData", tags$p("Pick a year"), min = minim, max = maxim, value = med, step = 1, animate=animationOptions(interval = 4000, loop = TRUE, playButton = NULL, pauseButton = NULL))
+    opts <- sliderInput("yearData", tags$h4("Pick a year"), 
+                        min = minim, max = maxim, value = maxim, step = 1, sep="",
+                        animate=animationOptions(interval = 2000, loop = FALSE, playButton = NULL, pauseButton = NULL))
     list(opts)
   })
   
@@ -102,11 +147,79 @@ shinyServer(function(input, output, session) {
   
   fao_data_import <- reactive({
     
-    df <- trade_data[trade_data$Reporter.Countries == input$reporterCountry & trade_data$Item == input$itemName,]
+    #df <- trade_data[trade_data$Reporter.Countries == input$reporterCountry & trade_data$Item == input$itemName,]
+    
+    fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
+    df <- trade_data[trade_data$Reporter.Country.Code == fao_code & trade_data$Item == input$itemName, ]
+    
     if (input$elementName == "Value") df <- df[df$Element == "Import Value",]
     if (input$elementName == "Quantity") df <- df[df$Element == "Import Quantity",]
     df
   })
+  
+  
+  output$mytable = renderDataTable({
+    
+    
+    df_export <- fao_data_export()
+    df_export <- df_export[df_export$Year <= input$yearData,]
+    
+    df_import <- fao_data_import()
+    df_import <- df_import[df_import$Year <= input$yearData,]
+    
+#     exp_sum <- df_export %>% 
+#       group_by(Year) %>% 
+#       dplyr::summarise(sum = sum(Value, na.rm = TRUE))
+#     exp_sum$var <- "Total Export"
+    
+    imp_sum <- df_import %>% 
+      group_by(Year) %>% 
+      dplyr::summarise(sum = sum(Value, na.rm = TRUE))
+    imp_sum$var <- "Total Import"
+    
+    #imp_sum[1:5,]
+    #rbind(imp_sum[1:5,],exp_sum[1:5,])
+    #rbind(df_export[1:5,],df_import[1:5,])
+    df_import <- fao_data_import()
+    df_import[1:5,]
+    
+  },options = list(pageLength = 10))
+  
+  
+  ### Limit the partner countries
+
+  
+    
+  output$limit_partner <- renderUI({
+    
+    if (input$dataType == "Export" | input$dataType == "Both")    {
+      df_export <- fao_data_export()
+      partners <- df_export[df_export$Year == input$yearData,]
+
+      partners <- partners %>% 
+        group_by(Partner.Countries) %>% 
+        dplyr::summarise(sum = sum(Value, na.rm = TRUE)) %>% 
+        arrange(-sum)
+      part_cntry <- partners$Partner.Countries
+    }
+    
+    if (input$dataType == "Import" | input$dataType == "Both"){
+      df_import <- fao_data_import()
+      partners <- df_import[df_import$Year == input$yearData,]
+      
+      partners <- partners %>% 
+        group_by(Partner.Countries) %>% 
+        dplyr::summarise(sum = sum(Value, na.rm = TRUE)) %>% 
+        arrange(-sum)
+      part_cntry <- partners$Partner.Countries
+    }
+    
+
+    opts <- selectizeInput("partnerCountry", tags$h4("Pick partner countries:"),
+                        choices = part_cntry, selected= part_cntry[1:10],multiple=TRUE, width="auto")
+    list(opts)
+   })
+  
   
 
   ### --------------------------------------------------------------------- ###
@@ -121,13 +234,84 @@ shinyServer(function(input, output, session) {
   #output$map <- reactivePlot(function() {
   plotInputMapExport <- reactive({
     
-    df_export <- fao_data_export()
-    df_export <- df_export[df_export$Year == input$yearData,]
-    #names(df_export) <- str_replace_all(names(df_export), " ", ".")
     
-    df_import <- fao_data_import()
-    df_import <- df_import[df_import$Year == input$yearData,]
-    #names(df_import) <- str_replace_all(names(df_import), " ", ".")
+    shape2 <- fao_world
+    
+    library(ggplot2)
+    shape$id <- rownames(shape@data)
+    map.points <- fortify(shape, region = "id")
+    map.df <- merge(map.points, shape, by = "id")
+    
+    cent <- cbind(shape2@data,as.data.frame(gCentroid(shape2,byid=TRUE)))
+    cent <- cent[!duplicated(cent$FAO_CODE),]
+    
+    # fortifying the routes information to create a dataframe; function from ggplot's github site ... thanks to the comments section in AnthroSpace's post
+    fortify.SpatialLinesDataFrame = function(model, data, ...) {
+      ldply(model@lines, fortify)
+    }
+    
+    
+    
+    if (input$dataType == "Export" | input$dataType == "Both")    {
+      df_export <- fao_data_export()
+      df_export <- df_export[df_export$Year == input$yearData,]
+      df_export <- df_export[df_export$Partner.Countries %in% input$partnerCountry,]
+      #names(df_export) <- str_replace_all(names(df_export), " ", ".")
+      
+      # Export data
+      df_export3 <- merge(df_export,cent,by.x="Partner.Country.Code",by.y="FAO_CODE")
+      tradepartners <- df_export3[c("Partner.Countries","Value","Item","x","y")]
+      # correct country based on codes
+      fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
+      origin <- cent[cent$FAO_CODE == fao_code,][c("x","y")]
+      routes = gcIntermediate(origin, tradepartners[,c('x', 'y')], 200, breakAtDateLine=FALSE, addStartEnd=TRUE, sp=TRUE)
+      routes <- spTransform(routes, CRS("+proj=robin"))
+      partners <- SpatialPointsDataFrame(tradepartners[4:5], tradepartners[1:3], proj4string = CRS("+proj=longlat +ellps=WGS84"))
+      partners <- spTransform(partners, CRS("+proj=robin"))
+      fortifiedpartners_export <- cbind(coordinates(partners), partners@data)
+      greatcircles_export = fortify.SpatialLinesDataFrame(routes) 
+      # An id for each country
+      tradepartners$id=as.character(c(1:nrow(tradepartners))) 
+      # Merge fortified routes with usopencountry information
+      greatcircles_export = merge(greatcircles_export, tradepartners, all.x=T, by="id") 
+      names(greatcircles_export)[names(greatcircles_export)=="x"] <- "long"
+      names(greatcircles_export)[names(greatcircles_export)=="y"] <- "lat"
+      names(fortifiedpartners_export)[names(fortifiedpartners_export)=="x"] <- "long"
+      names(fortifiedpartners_export)[names(fortifiedpartners_export)=="y"] <- "lat"
+    }
+    
+    if (input$dataType == "Import" | input$dataType == "Both"){
+      
+      df_import <- fao_data_import()
+      df_import <- df_import[df_import$Year == input$yearData,]
+      df_import <- df_import[df_import$Partner.Countries %in% input$partnerCountry,]
+      
+      
+      # Import data
+      df_import3 <- merge(df_import,cent,by.x="Partner.Country.Code",by.y="FAO_CODE")
+      tradepartners <- df_import3[c("Partner.Countries","Value","Item","x","y")]
+      #origin <- cent[cent$ADM0_NAME == input$reporterCountry,][c("x","y")]
+      # correct country based on codes
+      fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
+      origin <- cent[cent$FAO_CODE == fao_code,][c("x","y")]
+      
+      routes = gcIntermediate(origin, tradepartners[,c('x', 'y')], 200, breakAtDateLine=FALSE, addStartEnd=TRUE, sp=TRUE)
+      routes <- spTransform(routes, CRS("+proj=robin"))
+      partners <- SpatialPointsDataFrame(tradepartners[4:5], tradepartners[1:3], proj4string = CRS("+proj=longlat +ellps=WGS84"))
+      partners <- spTransform(partners, CRS("+proj=robin"))
+      fortifiedpartners_import <- cbind(coordinates(partners), partners@data)
+      greatcircles_import = fortify.SpatialLinesDataFrame(routes) 
+      # An id for each country
+      tradepartners$id=as.character(c(1:nrow(tradepartners))) 
+      # Merge fortified routes with usopencountry information
+      greatcircles_import = merge(greatcircles_import, tradepartners, all.x=T, by="id") 
+      names(greatcircles_import)[names(greatcircles_import)=="x"] <- "long"
+      names(greatcircles_import)[names(greatcircles_import)=="y"] <- "lat"
+      names(fortifiedpartners_import)[names(fortifiedpartners_import)=="x"] <- "long"
+      names(fortifiedpartners_import)[names(fortifiedpartners_import)=="y"] <- "lat"
+      
+    }
+
     
     # Filtering
 #     if (max(df_import$Value) > max(df_export$Value)) {
@@ -142,80 +326,13 @@ shinyServer(function(input, output, session) {
 #     }
     
 
-    
-    
-    
-    
-    shape2 <- fao_world
-    
-    library(ggplot2)
-    shape$id <- rownames(shape@data)
-    map.points <- fortify(shape, region = "id")
-    map.df <- merge(map.points, shape, by = "id")
-    
-    title_export_line = "Total wine exports\n in tonnes"
-    title_import_line = "Total wine imports\n in tonnes"
-    title_export_map = "Total wine exports\n in tonnes"
-    title_import_map = "Total wine imports\n in tonnes"
-    origin_country = "Italy"
-    data_export="wine_italy.csv"
-    data_import="wine_italy_import.csv"
-    quantity_limit=50
 
-    #df_export <- df_export[df_export$Value >= quantity_limit,]
-    
-    cent <- cbind(shape2@data,as.data.frame(gCentroid(shape2,byid=TRUE)))
-    cent <- cent[!duplicated(cent$FAO_CODE),]
-    
-    # fortifying the routes information to create a dataframe; function from ggplot's github site ... thanks to the comments section in AnthroSpace's post
-    fortify.SpatialLinesDataFrame = function(model, data, ...) {
-      ldply(model@lines, fortify)
-    }
-    
-    # Export data
-    df_export3 <- merge(df_export,cent,by.x="Partner.Country.Code",by.y="FAO_CODE")
-    tradepartners <- df_export3[c("Partner.Countries","Value","Item","x","y")]
-    origin <- cent[cent$ADM0_NAME == input$reporterCountry,][c("x","y")]
-    routes = gcIntermediate(origin, tradepartners[,c('x', 'y')], 200, breakAtDateLine=FALSE, addStartEnd=TRUE, sp=TRUE)
-    routes <- spTransform(routes, CRS("+proj=robin"))
-    partners <- SpatialPointsDataFrame(tradepartners[4:5], tradepartners[1:3], proj4string = CRS("+proj=longlat +ellps=WGS84"))
-    partners <- spTransform(partners, CRS("+proj=robin"))
-    fortifiedpartners_export <- cbind(coordinates(partners), partners@data)
-    greatcircles_export = fortify.SpatialLinesDataFrame(routes) 
-    # An id for each country
-    tradepartners$id=as.character(c(1:nrow(tradepartners))) 
-    # Merge fortified routes with usopencountry information
-    greatcircles_export = merge(greatcircles_export, tradepartners, all.x=T, by="id") 
-    names(greatcircles_export)[names(greatcircles_export)=="x"] <- "long"
-    names(greatcircles_export)[names(greatcircles_export)=="y"] <- "lat"
-    names(fortifiedpartners_export)[names(fortifiedpartners_export)=="x"] <- "long"
-    names(fortifiedpartners_export)[names(fortifiedpartners_export)=="y"] <- "lat"
-    
-    
-    # Import data
-    df_import3 <- merge(df_import,cent,by.x="Partner.Country.Code",by.y="FAO_CODE")
-    tradepartners <- df_import3[c("Partner.Countries","Value","Item","x","y")]
-    origin <- cent[cent$ADM0_NAME == input$reporterCountry,][c("x","y")]
-    routes = gcIntermediate(origin, tradepartners[,c('x', 'y')], 200, breakAtDateLine=FALSE, addStartEnd=TRUE, sp=TRUE)
-    routes <- spTransform(routes, CRS("+proj=robin"))
-    partners <- SpatialPointsDataFrame(tradepartners[4:5], tradepartners[1:3], proj4string = CRS("+proj=longlat +ellps=WGS84"))
-    partners <- spTransform(partners, CRS("+proj=robin"))
-    fortifiedpartners_import <- cbind(coordinates(partners), partners@data)
-    greatcircles_import = fortify.SpatialLinesDataFrame(routes) 
-    # An id for each country
-    tradepartners$id=as.character(c(1:nrow(tradepartners))) 
-    # Merge fortified routes with usopencountry information
-    greatcircles_import = merge(greatcircles_import, tradepartners, all.x=T, by="id") 
-    names(greatcircles_import)[names(greatcircles_import)=="x"] <- "long"
-    names(greatcircles_import)[names(greatcircles_import)=="y"] <- "lat"
-    names(fortifiedpartners_import)[names(fortifiedpartners_import)=="x"] <- "long"
-    names(fortifiedpartners_import)[names(fortifiedpartners_import)=="y"] <- "lat"
     
     
     if (input$dataType == "Export") {
-      lines_export <- geom_line(data=greatcircles_import,aes(long,lat,group=group, alpha=Value), size=.5, color="Steel Blue", show_guide = FALSE)
-      points_export <- geom_point(data=fortifiedpartners_import, aes(long,lat,size=Value),color="Steel Blue", shape=1)
-      names_export <- geom_text(data=fortifiedpartners_import, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=3, alpha=.8, family="Open Sans")
+      lines_export <- geom_line(data=greatcircles_export,aes(long,lat,group=group, alpha=Value), size=1, color="Steel Blue", show_guide = FALSE)
+      points_export <- geom_point(data=fortifiedpartners_export, aes(long,lat,size=Value),color="Steel Blue", shape=1)
+      names_export <- geom_text(data=fortifiedpartners_export, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=4, alpha=.8, family="Open Sans")
       title_exp <- "export"
       #colors <- scale_color_manual(values="Steel Blue")
       lines_import <- element_blank()
@@ -228,19 +345,19 @@ shinyServer(function(input, output, session) {
       points_export <- element_blank()
       names_export <- element_blank()
       #colors <- scale_color_manual(values="#FF3300")
-      lines_import <- geom_line(data=greatcircles_export,aes(long,lat,group=group, alpha=Value), size=.5, color="#FF3300", show_guide = FALSE)
-      points_import <- geom_point(data=fortifiedpartners_export, aes(long,lat,size=Value),color="#FF3300", shape=1)
-      names_import <- geom_text(data=fortifiedpartners_export, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=3, alpha=.8)
+      lines_import <- geom_line(data=greatcircles_import,aes(long,lat,group=group, alpha=Value), size=1, color="#FF3300", show_guide = FALSE)
+      points_import <- geom_point(data=fortifiedpartners_import, aes(long,lat,size=Value),color="#FF3300", shape=1)
+      names_import <- geom_text(data=fortifiedpartners_import, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=4, alpha=.8)
       title_exp <- "import"
     }
     if (input$dataType == "Both") {
 
-      lines_export <- geom_line(data=greatcircles_import,aes(long,lat,group=group, alpha=Value), size=.5, color="Steel Blue", show_guide = FALSE)
-      points_export <- geom_point(data=fortifiedpartners_import, aes(long,lat,size=Value),color="Steel Blue", shape=1)
-      names_export <- geom_text(data=fortifiedpartners_import, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=3, alpha=.8)
-      lines_import <- geom_line(data=greatcircles_export,aes(long,lat,group=group, alpha=Value), size=.5, color="#FF3300", show_guide = FALSE)
-      points_import <- geom_point(data=fortifiedpartners_export, aes(long,lat,size=Value),color="#FF3300", shape=1)
-      names_import <- geom_text(data=fortifiedpartners_export, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=3, alpha=.8)
+      lines_export <- geom_line(data=greatcircles_export,aes(long,lat,group=group, alpha=Value), size=1, color="Steel Blue", show_guide = FALSE)
+      points_export <- geom_point(data=fortifiedpartners_export, aes(long,lat,size=Value),color="Steel Blue", shape=1)
+      names_export <- geom_text(data=fortifiedpartners_export, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=4, alpha=.8)
+      lines_import <- geom_line(data=greatcircles_import,aes(long,lat,group=group, alpha=Value), size=1, color="#FF3300", show_guide = FALSE)
+      points_import <- geom_point(data=fortifiedpartners_import, aes(long,lat,size=Value),color="#FF3300", shape=1)
+      names_import <- geom_text(data=fortifiedpartners_import, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=4, alpha=.8)
       title_exp <- "exports and imports"
       #colors <- scale_color_manual(values=c("Steel Blue","#FF3300"))
 
@@ -254,7 +371,7 @@ shinyServer(function(input, output, session) {
     year <- input$yearData
     
     p <- ggplot()
-    p <- p + geom_polygon(data=map.df,aes(long,lat,group=group), fill="#5087CE", color="white", size=.5, alpha=.1)
+    p <- p + geom_polygon(data=map.df,aes(long,lat,group=group), fill="#5087CE", color="white", size=.5, alpha=.25)
     p <- p + lines_export + points_export + names_export
     p <- p + lines_import + points_import + names_import
     # exports
@@ -306,134 +423,118 @@ shinyServer(function(input, output, session) {
     plotInputMapExport()
   })
   
-  plotInputSumLine <- reactive({
-    
-    df_export <- fao_data_export()
-    maxyear <- max(df_export$Year)
-    minyear <- min(df_export$Year)
-    #df_export <- df_export[df_export$Year <= input$yearData,]
-   
-    df_import <- fao_data_import()
-    #df_import <- df_import[df_import$Year <= input$yearData,]
-   
-  exp_sum <- df_export %>% 
-    group_by(Year) %>% 
-    dplyr::summarise(sum = sum(Value, na.rm = TRUE))
-  exp_sum$var <- "Total Export"
+#   plotInputSumLine <- reactive({
+#     
+#     df_export <- fao_data_export()
+#     df_import <- fao_data_import()
+#     
+#     
+#     maxyear <- max(df_export$Year)
+#     minyear <- min(df_export$Year)
+#   
+#    
+#   exp_sum <- df_export %>% 
+#     group_by(Year) %>% 
+#     dplyr::summarise(sum = sum(Value, na.rm = TRUE))
+#   exp_sum$var <- "Total Export"
+#   
+#   imp_sum <- df_import %>% 
+#     group_by(Year) %>% 
+#     dplyr::summarise(sum = sum(Value, na.rm = TRUE))
+#   imp_sum$var <- "Total Import"
+#   
+#   
+#   if (input$dataType == "Export") {
+#     lines_export <- geom_line(data=exp_sum,aes(x=Year,y=sum,color="Export"), size=.5, alpha=.4)
+#     points_export <- geom_point(data=exp_sum,aes(x=Year,y=sum), color="Steel Blue", size=2, show_guide = FALSE, alpha=.4)
+#     colors <- scale_color_manual(values="Steel Blue")
+#     lines_import <- element_blank()
+#     points_import <- element_blank()
+#     title_exp <- "exports"
+#   }
+#   if (input$dataType == "Import") {
+#     lines_export <- element_blank()
+#     points_export <- element_blank()
+#     colors <- scale_color_manual(values="#FF3300")
+#     lines_import <- geom_line(data=imp_sum,aes(x=Year,y=sum,color="Import"), size=.5, alpha=.4)
+#     points_import <- geom_point(data=imp_sum,aes(x=Year,y=sum), color="#FF3300", size=2, show_guide = FALSE, alpha=.4)
+#     title_exp <- "imports"
+#   }
+#   if (input$dataType == "Both") {
+#     lines_import <- geom_line(data=imp_sum,aes(x=Year,y=sum,color="Import"), size=.5, alpha=.4)
+#     points_import <- geom_point(data=imp_sum,aes(x=Year,y=sum), color="#FF3300", size=2, show_guide = FALSE, alpha=.4)
+#     lines_export <- geom_line(data=exp_sum,aes(x=Year,y=sum,color="Export"), size=.5, alpha=.4)
+#     points_export <- geom_point(data=exp_sum,aes(x=Year,y=sum), color="Steel Blue", size=2, show_guide = FALSE, alpha=.4)
+#     title_exp <- "exports and imports"
+#     colors <- scale_color_manual(values=c("Steel Blue","#FF3300"))
+#     
+#     
+#   }
+# 
+#   if (input$elementName == "Quantity") legend_title <- "Quantity in tonnes"
+#   if (input$elementName == "Value") legend_title <- "Value in 1000 US$"
+#   
+#     
+#   plot_data <- rbind(exp_sum,imp_sum)
+#   
+#   #p <- ggplot(plot_data, aes(x=Year,y=sum,color=var))
+#   p <- ggplot()
+#   p <- p + lines_export + points_export #+ names_export
+#   p <- p + lines_import + points_import #+ names_import
+#   #p <- p + geom_point() + geom_line()
+#   p <- p + colors
+#   p <- p + coord_cartesian(xlim=c(minyear,maxyear))
+#   p <- p + scale_x_continuous(breaks=minyear:maxyear)
+#   p <- p + geom_vline(xintercept=input$yearData, color="black", alpha=.4, linetype="dashed")
+#   p <- p + labs(title = paste(input$reporterCountry,"-","Total",title_exp,"of \n",input$itemName),
+#                 x=NULL, 
+#                 y= legend_title)
+#   #p <- p + scale_color_manual(values=c("Steel Blue","#FF3300"))
+#   p <- p + theme(legend.position = "top",
+#                  axis.text.x  = element_text(angle=90, vjust= 0.5),
+#                  legend.justification=c(0,0),
+#                  legend.key.size=unit(5,'mm'),
+#                  legend.key = element_blank(),
+#                  legend.direction = "horizontal",
+#                  legend.background=element_rect(colour=NA, fill=NA),
+#                  #text = element_text(family = "Open Sans"),
+#                  legend.text=element_text(size=11),
+#                  legend.title=element_blank(),
+#                  title=element_text(size=12, color="Dim Grey"),
+#                  #panel.grid.minor=element_blank(),
+#                  #panel.grid.major=element_blank(),
+#                  panel.background = element_blank(),
+#                  plot.background = element_blank()
+#                  #axis.text = element_blank(),
+#                  #axis.ticks = element_blank()#,
+#                  #plot.margin = unit(c(-3,-1.5, -3, -1.5), "cm")#,
+#                  #text=element_text(family = "Open Sans")
+#   )
+#   p
+#   })
+#   
+#   output$sumLine <- reactivePlot(function(){
+#     plotInputSumLine()
+#   })
+#   
+#   output$dlSumLine <- downloadHandler(
+#     filename = 'timeseries.pdf',
+#     content = function(file) {
+#       device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
+#       ggsave(file, plot = plotInputSumLine(), device = device)
+#     }
+#   )
   
-  imp_sum <- df_import %>% 
-    group_by(Year) %>% 
-    dplyr::summarise(sum = sum(Value, na.rm = TRUE))
-  imp_sum$var <- "Total Import"
   
-  
-  if (input$dataType == "Export") {
-    lines_export <- geom_line(data=exp_sum,aes(x=Year,y=sum,color="Export"), size=.5, alpha=.4)
-    points_export <- geom_point(data=exp_sum,aes(x=Year,y=sum), color="Steel Blue", size=2, show_guide = FALSE, alpha=.4)
-    colors <- scale_color_manual(values="Steel Blue")
-    lines_import <- element_blank()
-    points_import <- element_blank()
-    title_exp <- "exports"
-  }
-  if (input$dataType == "Import") {
-    lines_export <- element_blank()
-    points_export <- element_blank()
-    colors <- scale_color_manual(values="#FF3300")
-    lines_import <- geom_line(data=imp_sum,aes(x=Year,y=sum,color="Import"), size=.5, alpha=.4)
-    points_import <- geom_point(data=imp_sum,aes(x=Year,y=sum), color="#FF3300", size=2, show_guide = FALSE, alpha=.4)
-    title_exp <- "imports"
-  }
-  if (input$dataType == "Both") {
-    lines_import <- geom_line(data=imp_sum,aes(x=Year,y=sum,color="Import"), size=.5, alpha=.4)
-    points_import <- geom_point(data=imp_sum,aes(x=Year,y=sum), color="#FF3300", size=2, show_guide = FALSE, alpha=.4)
-    lines_export <- geom_line(data=exp_sum,aes(x=Year,y=sum,color="Export"), size=.5, alpha=.4)
-    points_export <- geom_point(data=exp_sum,aes(x=Year,y=sum), color="Steel Blue", size=2, show_guide = FALSE, alpha=.4)
-    title_exp <- "exports and imports"
-    colors <- scale_color_manual(values=c("Steel Blue","#FF3300"))
-    
-    
-  }
 
-  if (input$elementName == "Quantity") legend_title <- "Quantity in tonnes"
-  if (input$elementName == "Value") legend_title <- "Value in 1000 US$"
-  
-    
-  plot_data <- rbind(exp_sum,imp_sum)
-  
-  #p <- ggplot(plot_data, aes(x=Year,y=sum,color=var))
-  p <- ggplot()
-  p <- p + lines_export + points_export #+ names_export
-  p <- p + lines_import + points_import #+ names_import
-  #p <- p + geom_point() + geom_line()
-  p <- p + colors
-  p <- p + coord_cartesian(xlim=c(minyear,maxyear))
-  p <- p + scale_x_continuous(breaks=minyear:maxyear)
-  p <- p + geom_vline(xintercept=input$yearData, color="black", alpha=.4, linetype="dashed")
-  p <- p + labs(title = paste(input$reporterCountry,"-","Total",title_exp,"of \n",input$itemName),
-                x=NULL, 
-                y= legend_title)
-  #p <- p + scale_color_manual(values=c("Steel Blue","#FF3300"))
-  p <- p + theme(legend.position = "top",
-                 axis.text.x  = element_text(angle=90, vjust= 0.5),
-                 legend.justification=c(0,0),
-                 legend.key.size=unit(5,'mm'),
-                 legend.key = element_blank(),
-                 legend.direction = "horizontal",
-                 legend.background=element_rect(colour=NA, fill=NA),
-                 #text = element_text(family = "Open Sans"),
-                 legend.text=element_text(size=11),
-                 legend.title=element_blank(),
-                 title=element_text(size=12, color="Dim Grey"),
-                 #panel.grid.minor=element_blank(),
-                 #panel.grid.major=element_blank(),
-                 panel.background = element_blank(),
-                 plot.background = element_blank()
-                 #axis.text = element_blank(),
-                 #axis.ticks = element_blank()#,
-                 #plot.margin = unit(c(-3,-1.5, -3, -1.5), "cm")#,
-                 #text=element_text(family = "Open Sans")
-  )
-  p
-  })
-  
-  output$sumLine <- reactivePlot(function(){
-    plotInputSumLine()
-  })
-  
-  output$dlSumLine <- downloadHandler(
-    filename = 'timeseries.pdf',
-    content = function(file) {
-      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
-      ggsave(file, plot = plotInputSumLine(), device = device)
-    }
-  )
-  
-  
-  output$mytable = renderDataTable({
-    
-    
-    df_export <- fao_data_export()
-    df_export <- df_export[df_export$Year <= input$yearData,]
-    
-    df_import <- fao_data_import()
-    df_import <- df_import[df_import$Year <= input$yearData,]
-    
-    exp_sum <- df_export %>% 
-      group_by(Year) %>% 
-      dplyr::summarise(sum = sum(Value, na.rm = TRUE))
-    exp_sum$var <- "Total Export"
-    
-    imp_sum
-    
-  },options = list(pageLength = 10))
   
   
   
   
   
-  output$export_map2 <- reactivePlot(function(){
-    plot(cars)
-  })
+#   output$export_map2 <- reactivePlot(function(){
+#     plot(cars)
+#   })
   
   
   output$dlMap <- downloadHandler(
@@ -447,12 +548,12 @@ shinyServer(function(input, output, session) {
   ### --------------------------------------------------------------------- ###
   ## Download data
   
-  output$dlDataMap <- downloadHandler(
-    filename = function() { paste(input$element_name,input$item_name,'mapdata.csv', sep="-") }, 
-    content = function(file) {
-      write.csv(fao_data_map(), file, row.names = FALSE)
-    }
-  )
+#   output$dlDataMap <- downloadHandler(
+#     filename = function() { paste(input$element_name,input$item_name,'mapdata.csv', sep="-") }, 
+#     content = function(file) {
+#       write.csv(fao_data_map(), file, row.names = FALSE)
+#     }
+#   )
 
   ### --------------------------------------------------------------------- ###
   ##-- Export Map
@@ -461,15 +562,24 @@ shinyServer(function(input, output, session) {
   #output$map <- reactivePlot(function() {
   plotInputTimeseries <- reactive({
     
-    df_export <- fao_data_export()
-    df_import <- fao_data_import()
+    
+    
     
     
     
     
     
     if (input$dataType == "Export") {
-      lines_export <- geom_line(data=df_export,aes(x=Year,y=Value,group=Partner.Countries,color="Export"), size=.5, alpha=.4)
+      df_export <- fao_data_export()
+      
+      fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
+      df_export <- df_export[df_export$Reporter.Country.Code == fao_code,]
+      
+      minYear <- min(df_export$Year)
+      maxYear <- max(df_export$Year)
+      
+      
+      lines_export <- geom_line(data=df_export,aes(x=Year,y=Value,group=Partner.Countries,color="Export"), alpha=.4)
       points_export <- geom_point(data=df_export,aes(x=Year,y=Value,group=Partner.Countries), color="Steel Blue", size=2, show_guide = FALSE, alpha=.4)
       names_export <- geom_text(data=merge(df_export, aggregate(Year ~ Partner.Countries, df_export, max), by=c("Year","Partner.Countries")), aes(x=Year, y = Value, label=Partner.Countries), hjust=-0.1,vjust=-1,size=4, alpha=.4, color="Steel Blue")
       title_exp <- "export"
@@ -480,21 +590,38 @@ shinyServer(function(input, output, session) {
       title_import <- element_blank()
     }
     if (input$dataType == "Import") {
+      df_import <- fao_data_import()
+      
+      fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
+      df_import <- df_import[df_import$Reporter.Country.Code == fao_code,]
+      
+      
+      minYear <- min(df_import$Year)
+      maxYear <- max(df_import$Year)
+      
       lines_export <- element_blank()
       points_export <- element_blank()
       names_export <- element_blank()
       colors <- scale_color_manual(values="#FF3300")
-      lines_import <- geom_line(data=df_import,aes(x=Year,y=Value,group=Partner.Countries,color="Import"), size=.5, alpha=.4)
+      lines_import <- geom_line(data=df_import,aes(x=Year,y=Value,group=Partner.Countries,color="Import"), alpha=.4)
       points_import <- geom_point(data=df_import,aes(x=Year,y=Value,group=Partner.Countries), color="#FF3300", size=2, show_guide = FALSE, alpha=.4)
       names_import <- geom_text(data=merge(df_import, aggregate(Year ~ Partner.Countries, df_import, max), by=c("Year","Partner.Countries")), aes(x=Year, y = Value, label=Partner.Countries), hjust=-0.1,vjust=-.5,size=4, alpha=.4,color="#FF3300")
       title_exp <- "import"
     }
     if (input$dataType == "Both") {
+      df_export <- fao_data_export()
+      df_import <- fao_data_import()
       
-    lines_export <- geom_line(data=df_export,aes(x=Year,y=Value,group=Partner.Countries,color="Export"), size=.5, alpha=.4)
+      df_export <- df_export[df_export$Partner.Countries %in% input$partnerCountry,]
+      df_import <- df_import[df_import$Partner.Countries %in% input$partnerCountry,]
+      
+      minYear <- min(df_export$Year)
+      maxYear <- max(df_export$Year)
+      
+    lines_export <- geom_line(data=df_export,aes(x=Year,y=Value,group=Partner.Countries,color="Export"), alpha=.4)
     points_export <- geom_point(data=df_export,aes(x=Year,y=Value,group=Partner.Countries), color="Steel Blue", size=2, show_guide = FALSE, alpha=.4)
     names_export <- geom_text(data=merge(df_export, aggregate(Year ~ Partner.Countries, df_export, max), by=c("Year","Partner.Countries")), aes(x=Year, y = Value, label=Partner.Countries), hjust=-0.1,vjust=-1,size=4, alpha=.4, color="Steel Blue")
-    lines_import <- geom_line(data=df_import,aes(x=Year,y=Value,group=Partner.Countries,color="Import"), size=.5, alpha=.4)
+    lines_import <- geom_line(data=df_import,aes(x=Year,y=Value,group=Partner.Countries,color="Import"), alpha=.4)
     points_import <- geom_point(data=df_import,aes(x=Year,y=Value,group=Partner.Countries), color="#FF3300", size=2, show_guide = FALSE, alpha=.4)
     names_import <- geom_text(data=merge(df_import, aggregate(Year ~ Partner.Countries, df_import, max), by=c("Year","Partner.Countries")), aes(x=Year, y = Value, label=Partner.Countries), hjust=-0.1,vjust=-.5,size=4, alpha=.4,color="#FF3300")
       title_exp <- "exports and imports"
@@ -514,7 +641,8 @@ shinyServer(function(input, output, session) {
     p <- p + lines_export + points_export + names_export
     p <- p + lines_import + points_import + names_import
     p <- p + geom_vline(xintercept=input$yearData, color="Dim Grey", alpha=.4, linetype="dashed")
-    p <- p + coord_cartesian(xlim=c(min(df_export$Year),max(df_export$Year)+3))
+    p <- p + coord_cartesian(xlim=c(minYear,maxYear+3))
+    p <- p + scale_x_continuous(breaks=minYear:maxYear)
     p <- p + colors
 #     p <- p + coord_equal()
     p <- p + labs(title = paste(input$reporterCountry,"-",title_exp,"of",input$itemName),
@@ -560,7 +688,96 @@ shinyServer(function(input, output, session) {
     }
   )
   
+  ### Barchart
   
+  plotInputBarchart <- reactive({
+    
+    
+    
+    fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
+    #fao_code <- 67
+    dataa <- trade_data[trade_data$Reporter.Country.Code == fao_code, ]
+    #dataa <- dataa[dataa$Year == 2010,]
+    dataa <- dataa[dataa$Year == input$yearData,]
+    
+    if (input$dataType == "Import" | input$dataType == "Both") {
+      
+      barData <- dataa[dataa$Element %in% c("Import Quantity","Import Value"),]
+      bars_i <- barData %>% 
+        #filter(Element == "Import Value") %>% 
+        group_by(Item) %>% 
+        dplyr::summarise(sum = sum(Value)) %>% 
+        arrange(sum)
+      bars_i$Item <- factor(bars_i$Item, levels = bars_i$Item)
+      bars_i$var <- "Import items"
+      bars <- bars_i
+      
+      title_exp <- "import items"
+    }
+    if (input$dataType == "Export" | input$dataType == "Both") {
+      barData <- dataa[dataa$Element %in% c("Export Quantity","Export Value"),]
+    
+      bars_e <- barData %>% 
+        group_by(Item) %>% 
+        dplyr::summarise(sum = sum(Value)) %>% 
+        arrange(sum)
+      bars_e$Item <- factor(bars_e$Item, levels = bars_e$Item)
+      bars_e$var <- "Export items"
+      bars <- bars_e
+      
+      title_exp <- "export items"
+    }
+    if (input$dataType == "Both") {
+      
+      bars <- rbind(bars_i,bars_e)
+      
+    }
+    
+    if (input$elementName == "Quantity") legend_title <- "Quantity in tonnes"
+    if (input$elementName == "Value") legend_title <- "Value in 1000 US$"
+    
+    p <- ggplot(bars, aes(x=Item,y=sum,fill=Item))
+    p <- p + geom_bar(stat="identity")
+    p <- p + coord_flip()
+    p <- p + labs(title = paste(input$reporterCountry,"30 most valuable",title_exp,"in",input$yearData),
+                   x=NULL, 
+                   y=legend_title)
+    p <- p + theme(legend.position = "none",
+                   legend.justification=c(0,0),
+                   legend.key.size=unit(5,'mm'),
+                   legend.key = element_blank(),
+                   legend.direction = "horizontal",
+                   legend.background=element_rect(colour=NA, fill=NA),
+                   #text = element_text(family = "Open Sans"),
+                   legend.text=element_text(size=11),
+                   legend.title=element_blank(),
+                   title=element_text(size=12, color="Dim Grey"),
+                   #panel.grid.minor=element_blank(),
+                   #panel.grid.major=element_blank(),
+                   panel.background = element_blank(),
+                   plot.background = element_blank()
+                   #axis.text = element_blank(),
+                   #axis.ticks = element_blank()#,
+                   #plot.margin = unit(c(-3,-1.5, -3, -1.5), "cm")#,
+                   #text=element_text(family = "Open Sans")
+    )
+    #p <- p + facet_wrap(~var, scales = "free")
+    p
+    
+    
+  })
+
+  output$export_Barchart <- reactivePlot(function(){
+    plotInputBarchart()
+  })
+  
+  output$dlBarchart <- downloadHandler(
+    filename = 'top_30_items.pdf',
+    content = function(file) {
+      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
+      ggsave(file, plot = plotInputBarchart(), device = device)
+    }
+  )
     
   #### Bivariate stuff
   

@@ -55,23 +55,35 @@ shinyUI(fluidPage(
                                     #  tabPanel(
 
                                   fluidRow(
-                                    shiny::column(4, radioButtons("dataType", tags$p("Show"),inline = TRUE, choices = list("Import", "Export", "Both"), selected = "Import")),
+                                    shiny::column(4, radioButtons("dataType", tags$h4("Show"),inline = TRUE, choices = list("Import", "Export", "Both"), selected = "Import")),
                                     shiny::column(4, uiOutput("reporter_country")),
                                     shiny::column(4, uiOutput("element"))
                                   ),
                                   fluidRow(
+                                    shiny::column(4, tags$i("")),
+                                    shiny::column(4, tags$i("Only limited number of reporter countries presented currently")),
+                                    shiny::column(4, tags$i("Value in 1000 US$ or quantity in tonnes"))
+                                  ),
+                                  fluidRow(
                                     shiny::column(4, uiOutput("year_data")),
                                     shiny::column(4, uiOutput("item")),
-                                    shiny::column(4, tags$p("Download:"),
+                                    shiny::column(4, tags$h4("Download:"),
                                                   downloadButton('dlMap', 'Map'),
-                                                  downloadButton('dlSumLine', 'Time-series'),
+                                                  downloadButton('dlBarchart', 'Top 30 items'),
                                                   downloadButton('dlTimeseries', 'Time-series by country')
                                                   )
                                   ),
-#                                   fluidRow(
-#                                     shiny::column(8, plotOutput("export_map",height="650px", width="auto")),
-#                                     shiny::column(4, plotOutput("sumLine",height="650px", width="auto"))
-#                                   ),
+                                  fluidRow(
+                                    shiny::column(4, tags$i("")),
+                                    shiny::column(4, tags$i("Showing top 20 items based on export/import value of the latest year")),
+                                    shiny::column(4, tags$i("Get graphs in A4 vector-pdf format"))
+                                  ),
+                                  fluidRow(
+                                    shiny::column(12, uiOutput("limit_partner"))
+                                  ),
+                                  fluidRow(
+                                    shiny::column(12, tags$i("showing maximun of top 10 partner countries by default"))
+                                  ),
 #                                   mainPanel(
 #                                         tabsetPanel(tabPanel("Map", plotOutput("export_map",height="800px", width="auto")),
 #                                                     tabPanel("Sum lines", plotOutput("sumline",height="800px", width="auto")),
@@ -79,10 +91,11 @@ shinyUI(fluidPage(
 #                                             )
 #                                         ),
 
-tabsetPanel(tabPanel("Map", plotOutput("export_map",height="750px", width="auto")),
-            tabPanel("Time-series", plotOutput("sumLine",height="500px", width="auto")),
-            tabPanel("Time-series by partner country", plotOutput("export_timeseries",height="500px", width="auto"))
-                                                         ),
+                              tabsetPanel(tabPanel("Map", plotOutput("export_map",height="750px", width="auto")),
+                                          tabPanel("Time-series by partner country", plotOutput("export_timeseries",height="500px", width="auto")),
+                                          tabPanel("Top 30 items", plotOutput("export_Barchart",height="500px", width="auto"))
+                                          #tabPanel("Table", dataTableOutput("mytable"))
+                                                                                       ),
 
 #                                  plotOutput("export_map", height="700px", width="auto"),
 
