@@ -100,9 +100,8 @@ shinyUI(fluidPage(
 #                                  plotOutput("export_map", height="700px", width="auto"),
 
                                   fluidRow(
-                                    shiny::column(6, tags$h4("Hello world"), 
-                                                  tags$p("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras semper, metus ac convallis vestibulum, elit arcu imperdiet neque, nec interdum quam dolor at libero.")),
-                                    shiny::column(6, tags$br(),tags$br(),tags$img(src="http://koti.kapsi.fi/~muuankarski/fao/visualisation/gif/logo200.png"))
+                                    shiny::column(12, tags$a( href="https://github.com/UNFAOstatistics/trade_matrix", "Code in Github"))#,
+                                    #shiny::column(6, tags$br(),tags$br(),tags$img(src="http://koti.kapsi.fi/~muuankarski/fao/visualisation/gif/logo200.png"))
                                   )
                                 
 
