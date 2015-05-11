@@ -40,15 +40,15 @@ shinyUI(fluidPage(
                                     shiny::column(4, radioButtons("dataType", tags$h4("Show"),inline = TRUE, choices = list("Import", "Export", "Both"), selected = "Import"),
                                                   bsTooltip("dataType", "Select Import, Export or both", "bottom", options = list(container = "body"))),
                                     shiny::column(4, uiOutput("reporter_country"),
-                                                  bsTooltip("reporter_country", "Only limited number of reporter countries presented currently", "bottom", options = list(container = "body"))),
+                                                  bsTooltip("reporter_country", "Currently only top 5 countries per each M49 macro regions by import value in 2011 are displayed", "bottom", options = list(container = "body"))),
                                     shiny::column(4, uiOutput("element"),
-                                                  bsTooltip("element", "Value in 1000 US$ or quantity in tonnes", "bottom", options = list(container = "body")))
+                                                  bsTooltip("element", "Either value in 1000 US$ or quantity in tonnes", "bottom", options = list(container = "body")))
                                   ),
                                   fluidRow(
                                     shiny::column(4, uiOutput("year_data"),
                                                   bsTooltip("year_data", "Pick a year for the map & bar chart", "bottom", options = list(container = "body"))),
                                     shiny::column(4, uiOutput("item"),
-                                                  bsTooltip("item", "Showing top 20 items based on export/import value of the latest year", "bottom", options = list(container = "body"))),
+                                                  bsTooltip("item", "Showing top 20 items based on export/import VALUE of the latest year in the time-series. Items are ordered by value.", "bottom", options = list(container = "body"))),
                                     shiny::column(4, tags$h4("Download in A4 vector-pdf format:"), 
                                                   downloadButton('dlMap', 'Map'),
                                                   downloadButton('dlBarchart', 'Top 30 items'),

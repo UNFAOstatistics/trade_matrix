@@ -74,7 +74,7 @@ shinyServer(function(input, output, session) {
     
     values <- c("Quantity","Value")
     opts <- selectInput("elementName", tags$h4("Pick an Element:"),
-                        choices = values, selected=values[2])
+                        choices = values, selected=values[1])
     list(opts)
   })
   
@@ -94,7 +94,7 @@ shinyServer(function(input, output, session) {
 
     opts <- sliderInput("yearData", tags$h4("Pick a year"), 
                         min = min(opts), max = max(opts), value = max(opts), step = 1, sep="",
-                        animate=animationOptions(interval = 2000, loop = FALSE, playButton = NULL, pauseButton = NULL))
+                        animate=animationOptions(interval = 2500, loop = FALSE, playButton = NULL, pauseButton = NULL))
     list(opts)
   })
   
@@ -515,12 +515,12 @@ shinyServer(function(input, output, session) {
     
     
     
-    year <- input$yearData
+    #year <- input$yearData
     
     p <- ggplot()
     p <- p + lines_export + points_export + names_export
     p <- p + lines_import + points_import + names_import
-    p <- p + geom_vline(xintercept=input$yearData, color="Dim Grey", alpha=.4, linetype="dashed")
+    #p <- p + geom_vline(xintercept=input$yearData, color="Dim Grey", alpha=.4, linetype="dashed")
     p <- p + coord_cartesian(xlim=c(minYear,maxYear+3))
     p <- p + scale_x_continuous(breaks=minYear:maxYear)
     p <- p + colors
