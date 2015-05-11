@@ -72,9 +72,9 @@ shinyServer(function(input, output, session) {
   
   output$element <- renderUI({
     
-    values <- c("Quantity","Value")
-    opts <- selectInput("elementName", tags$h4("Pick an Element:"),
-                        choices = values, selected=values[2])
+    values <- c("Value","Quantity")
+    opts <- radioButtons("elementName", tags$h4("Pick an Element:"),inline = TRUE,
+                        choices = values, selected=values[1])
     list(opts)
   })
   
@@ -278,24 +278,8 @@ shinyServer(function(input, output, session) {
     }
 
     
-    # Filtering
-#     if (max(df_import$Value) > max(df_export$Value)) {
-#       quart1 <- mean(df_import$Value, na.rm=TRUE)*.0001
-#       df_import <- df_import[df_import$Value > quart1,]
-#       df_export <- df_import[df_export$Value > quart1,]
-#     }
-#     if (max(df_import$Value) < max(df_export$Value)) {
-#       quart1 <- mean(df_export$Value, na.rm=TRUE)*.0001
-#       df_import <- df_import[df_import$Value > quart1,]
-#       df_export <- df_import[df_export$Value > quart1,]
-#     }
-    
-
-
-    
-    
     if (input$dataType == "Export") {
-      lines_export <- geom_line(data=greatcircles_export,aes(long,lat,group=group, alpha=Value), size=1, color="Steel Blue", show_guide = FALSE)
+      lines_export <- geom_line(data=greatcircles_export,aes(long,lat,group=group, alpha=Value), size=1.5, color="Steel Blue", show_guide = FALSE)
       points_export <- geom_point(data=fortifiedpartners_export, aes(long,lat,size=Value),color="Steel Blue", shape=1)
       names_export <- geom_text(data=fortifiedpartners_export, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=4, alpha=.8, family="Open Sans")
       title_exp <- "export"
@@ -310,17 +294,17 @@ shinyServer(function(input, output, session) {
       points_export <- element_blank()
       names_export <- element_blank()
       #colors <- scale_color_manual(values="#FF3300")
-      lines_import <- geom_line(data=greatcircles_import,aes(long,lat,group=group, alpha=Value), size=1, color="#FF3300", show_guide = FALSE)
+      lines_import <- geom_line(data=greatcircles_import,aes(long,lat,group=group, alpha=Value), size=1.5, color="#FF3300", show_guide = FALSE)
       points_import <- geom_point(data=fortifiedpartners_import, aes(long,lat,size=Value),color="#FF3300", shape=1)
       names_import <- geom_text(data=fortifiedpartners_import, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=4, alpha=.8)
       title_exp <- "import"
     }
     if (input$dataType == "Both") {
 
-      lines_export <- geom_line(data=greatcircles_export,aes(long,lat,group=group, alpha=Value), size=1, color="Steel Blue", show_guide = FALSE)
+      lines_export <- geom_line(data=greatcircles_export,aes(long,lat,group=group, alpha=Value), size=1.5, color="Steel Blue", show_guide = FALSE)
       points_export <- geom_point(data=fortifiedpartners_export, aes(long,lat,size=Value),color="Steel Blue", shape=1)
       names_export <- geom_text(data=fortifiedpartners_export, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=4, alpha=.8)
-      lines_import <- geom_line(data=greatcircles_import,aes(long,lat,group=group, alpha=Value), size=1, color="#FF3300", show_guide = FALSE)
+      lines_import <- geom_line(data=greatcircles_import,aes(long,lat,group=group, alpha=Value), size=1.5, color="#FF3300", show_guide = FALSE)
       points_import <- geom_point(data=fortifiedpartners_import, aes(long,lat,size=Value),color="#FF3300", shape=1)
       names_import <- geom_text(data=fortifiedpartners_import, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=4, alpha=.8)
       title_exp <- "exports and imports"
@@ -434,7 +418,7 @@ shinyServer(function(input, output, session) {
   
   
   
-  #output$map <- reactivePlot(function() {
+
   plotInputTimeseries <- reactive({
     
     
@@ -556,7 +540,7 @@ shinyServer(function(input, output, session) {
   })
   
   
-  output$export_timeseries <- reactivePlot(function(){
+  output$export_timeseries <- renderPlot(function(){
     plotInputTimeseries()
   })
   
@@ -605,7 +589,7 @@ shinyServer(function(input, output, session) {
   
   plotInputBarchart <- reactive({
     
-    #dataa <- dataa[dataa$Year == input$yearData,]
+    
     
     if (input$dataType == "Import" | input$dataType == "Both") {
       
@@ -622,6 +606,7 @@ shinyServer(function(input, output, session) {
       bars <- bars_i
       
       title_exp <- "import items"
+      fill_order <- scale_fill_manual(values=c("#FF3300"))
     }
     if (input$dataType == "Export" | input$dataType == "Both") {
       
@@ -636,23 +621,29 @@ shinyServer(function(input, output, session) {
       bars <- bars_e
       
       title_exp <- "export items"
+      fill_order <- scale_fill_manual(values=c("#5087CE"))
     }
     if (input$dataType == "Both") {
       
       bars <- rbind(bars_i,bars_e)
       
+      fill_order <- scale_fill_manual(values=c("#5087CE","#FF3300"))
+      title_exp <- "export and import items"
     }
+    
+
     
     if (input$elementName == "Quantity") legend_title <- "Quantity in tonnes"
     if (input$elementName == "Value") legend_title <- "Value in 1000 US$"
     
-    p <- ggplot(bars, aes(x=Item,y=sum))
-    p <- p + geom_bar(stat="identity", fill="#5087CE",alpha=.60)
+    p <- ggplot(bars, aes(x=Item,y=sum,fill=var))
+    p <- p + geom_bar(stat="identity", alpha=.60, position="dodge")
+    p <- p + fill_order
     p <- p + coord_flip()
     p <- p + labs(title = paste(input$reporterCountry,"top 30",title_exp,"in",input$yearData),
                    x=NULL, 
                    y=legend_title)
-    p <- p + theme(legend.position = "none",
+    p <- p + theme(legend.position = "top",
                    legend.justification=c(0,0),
                    legend.key.size=unit(5,'mm'),
                    legend.key = element_blank(),
