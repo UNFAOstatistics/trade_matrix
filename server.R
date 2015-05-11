@@ -62,7 +62,7 @@ shinyServer(function(input, output, session) {
       itemList <- items_exp[items_exp %in% items_imp]
       }
     opts <- selectInput("itemName", tags$h4("Pick an Item:"),
-                        choices = itemList, selected = itemList[2])
+                        choices = itemList, selected = itemList[1])
     list(opts)
   })
   
@@ -74,7 +74,7 @@ shinyServer(function(input, output, session) {
     
     values <- c("Quantity","Value")
     opts <- selectInput("elementName", tags$h4("Pick an Element:"),
-                        choices = values, selected=values[1])
+                        choices = values, selected=values[2])
     list(opts)
   })
   

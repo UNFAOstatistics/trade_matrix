@@ -171,7 +171,7 @@ load("reg.RData")
 
 #library(FAOSTAT)
 #save(FAOmetaTable, file="FAOmetaTable.RData")
-load("FAOmetaTable.RData")
+#load("FAOmetaTable.RData")
 #save(FAOcountryProfile, file="FAOcountryProfile.RData")
 load("FAOcountryProfile.RData")
 
