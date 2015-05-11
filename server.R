@@ -409,7 +409,7 @@ shinyServer(function(input, output, session) {
   output$dlMap <- downloadHandler(
     filename = 'map_export.pdf',
     content = function(file) {
-      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Helvetica")
+      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Ubuntu")
       ggsave(file, plot = plotInputMapExport(), device = device)
     }
   )
@@ -547,7 +547,7 @@ shinyServer(function(input, output, session) {
   output$dlTimeseries <- downloadHandler(
     filename = 'timeseries_by_country.pdf',
     content = function(file) {
-      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Helvetica")
+      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Ubuntu")
       ggsave(file, plot = plotInputTimeseries(), device = device)
     }
   )
@@ -675,7 +675,7 @@ shinyServer(function(input, output, session) {
   output$dlBarchart <- downloadHandler(
     filename = 'top_30_items.pdf',
     content = function(file) {
-      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Helvetica")
+      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Ubuntu")
       ggsave(file, plot = plotInputBarchart(), device = device)
     }
   )
