@@ -1,17 +1,27 @@
+# Select countries for the preview - top 5 from each region based on import value on 2012
+## see file country_relection.Rmd
+
+library(readr)
+library(dplyr)
+library(stringr)
+# 
+# 
 # # Read trade-matrix data by country
-# datasets <- list.files("../shiny_app_raw_data/trade_matrix/", full.names = T)
+# datasets <- list.files("../shiny_app_raw_data/trade_matrix_preview/", full.names = T)
+# # Remove the path
+# datasets_nopaths <- str_replace_all(datasets, "../shiny_app_raw_data/trade_matrix_preview//", "")
+# filenames <- as.numeric(str_replace_all(datasets_nopaths, ".csv", ""))
 # 
-# library(readr)
-# library(dplyr)
-# 
-# trade_data <- data.frame()
+# avail_cntry <- data.frame()
 # for (i in 1:length(datasets)) {
 #   df <- read_csv(datasets[i])
-#   # Subset data to include only 20 most important items and 20 most important partners in year 2010
+#   # Subset data to include only 20 most important items and 20 most important partners in year 2012
 #   im <- df[df$Element %in% c("Import Value","Import Quantity"),]
 #   ex <- df[df$Element %in% c("Export Value","Export Quantity"),]
-#   im_ss <- im[im$Year == 2011 & im$Element == "Import Value",]
-#   ex_ss <- ex[ex$Year == 2011 & ex$Element == "Export Value",]
+#   import_max <- max(im$Year)
+#   export_max <- max(ex$Year)
+#   im_ss <- im[im$Year == import_max & im$Element == "Import Value",]
+#   ex_ss <- ex[ex$Year == export_max & ex$Element == "Export Value",]
 #   # Most valuable Items
 #   im_items <- im_ss %>% group_by(Item) %>% 
 #     dplyr::summarise(sum = sum(Value)) %>% 
@@ -22,13 +32,19 @@
 #   ims <- im_items$Item[1:20]
 #   exs <- ex_items$Item[1:20]
 #   df <- df[df$Item %in% c(ims,exs),]
-#   trade_data <- rbind(trade_data,df)
+#   names(df) <- str_replace_all(names(df), " ", ".")
+#   save(df,file=paste0("datasets/",filenames[i],".RData"))
+#   smr <- data.frame(FAOST_CODE = filenames[i],
+#                     country = unique(df$Reporter.Countries),
+#                     location = paste0("datasets/",filenames[i],".RData"),
+#                     stringsAsFactors = FALSE)
+#   avail_cntry <- rbind(avail_cntry,smr)
 # }
-# 
-# save(trade_data, file="trade_data.RData")
-load("trade_data.RData")
+# save(avail_cntry, file="avail_cntry.RData")
+
+
 library(stringr)
-names(trade_data) <- str_replace_all(names(trade_data), " ", ".")
+
 # 
 # 
 # # # Doanload data from FAOSTAT
@@ -76,7 +92,7 @@ names(trade_data) <- str_replace_all(names(trade_data), " ", ".")
 # data$Country[data$FAOST_CODE == 41] <- "China"
 # 
 # # Lets take the region from gisfao shapefiles & the shapefiles
-# library(gisfao)
+#library(gisfao)
 
 # save(fao_world, file="fao_world.RData")
 # save(fao_world_centroids, file="fao_world_centroids.RData")

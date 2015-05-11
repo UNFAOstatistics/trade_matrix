@@ -8,6 +8,8 @@ library(sp)
 library(rgeos)
 library(plyr)
 library(geosphere)
+library(extrafont)
+loadfonts()
 library(stringr)
 library(rgdal)
 library(grid)
@@ -28,7 +30,8 @@ shinyServer(function(input, output, session) {
   
   output$reporter_country <- renderUI({
     
-    reporter_countries <- unique(trade_data$Reporter.Countries)
+    #reporter_countries <- unique(trade_data$Reporter.Countries)
+    reporter_countries <- avail_cntry$country
     opts <- selectInput("reporterCountry", tags$h4("Pick a reporter country:"),
                         choices = reporter_countries, selected=reporter_countries[1])
     list(opts)
@@ -390,16 +393,16 @@ shinyServer(function(input, output, session) {
                   x=NULL, 
                   y=NULL)
     p <- p + guides(color = guide_legend(title = ""))
-    p <- p + theme(legend.position = "top",
+    p <- p + theme(legend.position = c(0.20,0.20),
                    legend.justification=c(0,0),
                    legend.key.size=unit(5,'mm'),
-                   legend.direction = "horizontal",
+                   legend.direction = "vertical",
                    legend.background=element_rect(colour=NA, fill=NA),
                    #text = element_text(family = "Open Sans"),
-                   legend.text=element_text(size=11),
+                   legend.text=element_text(size=11, family="Open Sans"),
                    legend.key = element_blank(),
-                   legend.title=element_text(size=11),
-                   title=element_text(size=12, color="Dim Grey"),
+                   legend.title=element_text(size=11, family="Open Sans", face="bold"),
+                   title=element_text(size=14, color="Dim Grey", family="Open Sans"),
                    panel.grid.minor=element_blank(),
                    panel.grid.major=element_blank(),
                    panel.background = element_blank(),
@@ -574,6 +577,7 @@ shinyServer(function(input, output, session) {
       
       fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
       df_export <- df_export[df_export$Reporter.Country.Code == fao_code,]
+      df_export <- df_export[df_export$Partner.Countries %in% input$partnerCountry,]
       
       minYear <- min(df_export$Year)
       maxYear <- max(df_export$Year)
@@ -594,6 +598,7 @@ shinyServer(function(input, output, session) {
       
       fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
       df_import <- df_import[df_import$Reporter.Country.Code == fao_code,]
+      df_import <- df_import[df_import$Partner.Countries %in% input$partnerCountry,]
       
       
       minYear <- min(df_import$Year)
@@ -620,10 +625,10 @@ shinyServer(function(input, output, session) {
       
     lines_export <- geom_line(data=df_export,aes(x=Year,y=Value,group=Partner.Countries,color="Export"), alpha=.4)
     points_export <- geom_point(data=df_export,aes(x=Year,y=Value,group=Partner.Countries), color="Steel Blue", size=2, show_guide = FALSE, alpha=.4)
-    names_export <- geom_text(data=merge(df_export, aggregate(Year ~ Partner.Countries, df_export, max), by=c("Year","Partner.Countries")), aes(x=Year, y = Value, label=Partner.Countries), hjust=-0.1,vjust=-1,size=4, alpha=.4, color="Steel Blue")
+    names_export <- geom_text(data=merge(df_export, aggregate(Year ~ Partner.Countries, df_export, max), by=c("Year","Partner.Countries")), aes(x=Year, y = Value, label=Partner.Countries), hjust=-0.1,vjust=-1,size=4, alpha=.4, color="Steel Blue", family="Open Sans")
     lines_import <- geom_line(data=df_import,aes(x=Year,y=Value,group=Partner.Countries,color="Import"), alpha=.4)
     points_import <- geom_point(data=df_import,aes(x=Year,y=Value,group=Partner.Countries), color="#FF3300", size=2, show_guide = FALSE, alpha=.4)
-    names_import <- geom_text(data=merge(df_import, aggregate(Year ~ Partner.Countries, df_import, max), by=c("Year","Partner.Countries")), aes(x=Year, y = Value, label=Partner.Countries), hjust=-0.1,vjust=-.5,size=4, alpha=.4,color="#FF3300")
+    names_import <- geom_text(data=merge(df_import, aggregate(Year ~ Partner.Countries, df_import, max), by=c("Year","Partner.Countries")), aes(x=Year, y = Value, label=Partner.Countries), hjust=-0.1,vjust=-.5,size=4, alpha=.4,color="#FF3300", family="Open Sans")
       title_exp <- "exports and imports"
       colors <- scale_color_manual(values=c("Steel Blue","#FF3300"))
       
@@ -655,9 +660,9 @@ shinyServer(function(input, output, session) {
                    legend.direction = "horizontal",
                    legend.background=element_rect(colour=NA, fill=NA),
                    #text = element_text(family = "Open Sans"),
-                   legend.text=element_text(size=11),
+                   legend.text=element_text(size=11, family="Open Sans"),
                    legend.title=element_blank(),
-                   title=element_text(size=12, color="Dim Grey"),
+                   title=element_text(size=14, color="Dim Grey", family="Open Sans"),
                    #panel.grid.minor=element_blank(),
                    #panel.grid.major=element_blank(),
                    panel.background = element_blank(),
@@ -749,9 +754,9 @@ shinyServer(function(input, output, session) {
                    legend.direction = "horizontal",
                    legend.background=element_rect(colour=NA, fill=NA),
                    #text = element_text(family = "Open Sans"),
-                   legend.text=element_text(size=11),
+                   legend.text=element_text(size=11, family="Open Sans"),
                    legend.title=element_blank(),
-                   title=element_text(size=12, color="Dim Grey"),
+                   title=element_text(size=14, color="Dim Grey", family="Open Sans"),
                    #panel.grid.minor=element_blank(),
                    #panel.grid.major=element_blank(),
                    panel.background = element_blank(),

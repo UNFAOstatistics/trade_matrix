@@ -25,9 +25,9 @@ shinyUI(fluidPage(
                                   )
                                 ), 
 
-                                
                                 tags$h1("FAOSTAT Trade Matrix Explorer"),
-                                #plotOutput("export_map", height="700px", width="auto"),
+
+
 
 
 #                                 sidebarLayout(
@@ -102,7 +102,21 @@ shinyUI(fluidPage(
                                   fluidRow(
                                     shiny::column(12, tags$a( href="https://github.com/UNFAOstatistics/trade_matrix", "Code in Github"))#,
                                     #shiny::column(6, tags$br(),tags$br(),tags$img(src="http://koti.kapsi.fi/~muuankarski/fao/visualisation/gif/logo200.png"))
-                                  )
+                                  ),
+
+                                  
+                                  tags$script(HTML("var header = $('navbar > .container');
+                                                                                         header.append('<div style=\"float:right\"><a href=\"https://twitter.com/share\" class=\"twitter-share-button\" aling=\"middle\" data-url=\"www.mywebsite.com\" data-text=\"Visit www.mywebsite.com\" data-size=\"large\">Tweet</a></div>');
+                                                                                         console.log(header)")),
+                                  tags$script(HTML("!function(d,s,id){
+                                                                              var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';
+                                                                              if(!d.getElementById(id)){
+                                                                                      js=d.createElement(s);
+                                                                                      js.id=id;
+                                                                                      js.src=p+'://platform.twitter.com/widgets.js';
+                                                                                      fjs.parentNode.insertBefore(js,fjs);
+                                                                              }
+                                    }(document, 'script', 'twitter-wjs');"))
                                 
 
 
