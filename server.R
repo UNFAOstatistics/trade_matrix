@@ -33,7 +33,7 @@ shinyServer(function(input, output, session) {
     #reporter_countries <- unique(trade_data$Reporter.Countries)
     reporter_countries <- avail_cntry$country
     opts <- selectInput("reporterCountry", tags$h4("Pick a reporter country:"),
-                        choices = reporter_countries, selected=reporter_countries[1])
+                        choices = reporter_countries, selected="Germany")
     list(opts)
   })
   
@@ -43,52 +43,26 @@ shinyServer(function(input, output, session) {
   
   output$item <- renderUI({
     
-    fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
-    dataa <- trade_data[trade_data$Reporter.Country.Code == fao_code, ]
+    
+    cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == input$reporterCountry,]$FAOST_CODE), envir = globalenv())
     
     if (input$dataType == "Import") {
 
-      itemData <- dataa[dataa$Element %in% c("Import Quantity","Import Value"),]
-      itemOrder <- itemData %>% 
-        filter(Element == "Import Value") %>% 
-        group_by(Item) %>% 
-        dplyr::summarise(sum = sum(Value)) %>% 
-        arrange(-sum)
-      
-      itemList <- itemOrder$Item
+      itemList <- cntry_metadata[[3]]
       
     }
     if (input$dataType == "Export") {
-      itemData <- dataa[dataa$Element %in% c("Export Quantity","Export Value"),]
       
-      itemOrder <- itemData %>% 
-        filter(Element == "Export Value") %>% 
-        group_by(Item) %>% 
-        dplyr::summarise(sum = sum(Value)) %>% 
-        arrange(-sum)
-      
-      itemList <- itemOrder$Item
+      itemList <- cntry_metadata[[4]]
     }
     if (input$dataType == "Both") {
       
-      items_exp <- unique(dataa[dataa$Element %in% c("Export Quantity","Export Value"),]$Item)
-      items_imp <- unique(dataa[dataa$Element %in% c("Import Quantity","import Value"),]$Item)
+      items_exp <- cntry_metadata[[3]]
+      items_imp <- cntry_metadata[[4]]
       itemList <- items_exp[items_exp %in% items_imp]
-      #dataa <- dataa[dataa$Item %in% items_common,]
       }
-    #dataa <- trade_data[trade_data$Reporter.Countries == "Argentina", ]
-#     dataa <- dataa[dataa$Year == max(dataa$Year),]
-#     itemList <- unique(dataa$Item)
-#     itemOrder <- dataa %>% 
-#       group_by(Item) %>% 
-#       dplyr::summarise(n = n())
-#     itemOrder <- arrange(itemOrder, -n)
-#     topItems <- itemOrder$Item
-    #item_list <- item_list[!is.na(item_list)]
-    #item_list <- topItems
-    #item_list <- allItems
     opts <- selectInput("itemName", tags$h4("Pick an Item:"),
-                        choices = itemList, selected = itemList[1])
+                        choices = itemList, selected = itemList[2])
     list(opts)
   })
   
@@ -105,42 +79,21 @@ shinyServer(function(input, output, session) {
   })
   
   ### --------------------------------------------------------------------- ###
-  ### --------------------------------------------------------------------- ###
-  ## -- Subset trade-matrix data
-  
-  fao_data_export <- reactive({
-    
-    #df <- trade_data[trade_data$Reporter.Countries == input$reporterCountry & trade_data$Item == input$itemName,]
-    
-    fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
-    df <- trade_data[trade_data$Reporter.Country.Code == fao_code & trade_data$Item == input$itemName, ]
-    
-    if (input$elementName == "Value") df <- df[df$Element == "Export Value",]
-    if (input$elementName == "Quantity") df <- df[df$Element == "Export Quantity",]
-    df
-  })
+
   
   ### --------------------------------------------------------------------- ###
   ##-- Set the time for export-year 
   
   output$year_data <- renderUI({
     
-    if (input$dataType == "Import") data <- fao_data_import()
-    if (input$dataType == "Export") data <- fao_data_export()
-    if (input$dataType == "Both") data <- fao_data_export()
-#     if (input$dataType == "Both") {
-#       
-#       items_exp <- unique(dataa[dataa$Element %in% c("Export Quantity","Export Value"),]$Item)
-#       items_imp <- unique(dataa[dataa$Element %in% c("Import Quantity","import Value"),]$Item)
-#       items_common <- items_exp[items_exp %in% items_imp]
-#       dataa <- dataa[dataa$Item %in% items_common,]
-#     }
+    cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == input$reporterCountry,]$FAOST_CODE), envir = globalenv())
+    
+    if (input$dataType == "Import") opts <- cntry_metadata[[5]]
+    if (input$dataType == "Export") opts <- cntry_metadata[[6]]
+    if (input$dataType == "Both") opts <- cntry_metadata[[5]][cntry_metadata[[5]] %in% cntry_metadata[[6]]]
 
-    data <- data[!is.na(data$Year),]
-    maxim <- max(data$Year)
-    minim <- min(data$Year)
     opts <- sliderInput("yearData", tags$h4("Pick a year"), 
-                        min = minim, max = maxim, value = maxim, step = 1, sep="",
+                        min = min(opts), max = max(opts), value = max(opts), step = 1, sep="",
                         animate=animationOptions(interval = 2000, loop = FALSE, playButton = NULL, pauseButton = NULL))
     list(opts)
   })
@@ -148,48 +101,65 @@ shinyServer(function(input, output, session) {
   ### --------------------------------------------------------------------- ###
   ## -- Subset trade-matrix data
   
+  fao_data_export <- reactive({
+    
+    #cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == "Germany",]$FAOST_CODE), envir = globalenv())
+    cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == input$reporterCountry,]$FAOST_CODE), envir = globalenv())
+    
+    df <- cntry_metadata[[7]]
+    dat <- df[df$Item == input$itemName, ]
+
+    if (input$elementName == "Value") dat <- dat[dat$Element == "Export Value",]
+    if (input$elementName == "Quantity") dat <- dat[dat$Element == "Export Quantity",]
+    dat
+  })
+  
+  ### --------------------------------------------------------------------- ###
+  ## -- Subset trade-matrix data
+  
   fao_data_import <- reactive({
     
-    #df <- trade_data[trade_data$Reporter.Countries == input$reporterCountry & trade_data$Item == input$itemName,]
+    cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == input$reporterCountry,]$FAOST_CODE), envir = globalenv())
     
-    fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
-    df <- trade_data[trade_data$Reporter.Country.Code == fao_code & trade_data$Item == input$itemName, ]
-    
-    if (input$elementName == "Value") df <- df[df$Element == "Import Value",]
-    if (input$elementName == "Quantity") df <- df[df$Element == "Import Quantity",]
-    df
+    #load(cntry_metadata[[2]])
+    df <- cntry_metadata[[7]]
+    dat <- df[df$Item == input$itemName, ]
+
+    if (input$elementName == "Value") dat <- dat[dat$Element == "Import Value",]
+    if (input$elementName == "Quantity") dat <- dat[dat$Element == "Import Quantity",]
+    dat
   })
   
   
-  output$mytable = renderDataTable({
-    
-    
-    df_export <- fao_data_export()
-    df_export <- df_export[df_export$Year <= input$yearData,]
-    
-    df_import <- fao_data_import()
-    df_import <- df_import[df_import$Year <= input$yearData,]
-    
-#     exp_sum <- df_export %>% 
+#   output$mytable = renderDataTable({
+#     
+#     
+#     df_export <- fao_data_export()
+#     df_export <- df_export[df_export$Year <= input$yearData,]
+#     
+#     df_import <- fao_data_import()
+#     df_import <- df_import[df_import$Year <= input$yearData,]
+#     
+# #     exp_sum <- df_export %>% 
+# #       group_by(Year) %>% 
+# #       dplyr::summarise(sum = sum(Value, na.rm = TRUE))
+# #     exp_sum$var <- "Total Export"
+#     
+#     imp_sum <- df_import %>% 
 #       group_by(Year) %>% 
 #       dplyr::summarise(sum = sum(Value, na.rm = TRUE))
-#     exp_sum$var <- "Total Export"
-    
-    imp_sum <- df_import %>% 
-      group_by(Year) %>% 
-      dplyr::summarise(sum = sum(Value, na.rm = TRUE))
-    imp_sum$var <- "Total Import"
-    
-    #imp_sum[1:5,]
-    #rbind(imp_sum[1:5,],exp_sum[1:5,])
-    #rbind(df_export[1:5,],df_import[1:5,])
-    df_import <- fao_data_import()
-    df_import[1:5,]
-    
-  },options = list(pageLength = 10))
-  
-  
-  ### Limit the partner countries
+#     imp_sum$var <- "Total Import"
+#     
+#     #imp_sum[1:5,]
+#     #rbind(imp_sum[1:5,],exp_sum[1:5,])
+#     #rbind(df_export[1:5,],df_import[1:5,])
+#     df_import <- fao_data_import()
+#     df_import[1:5,]
+#     
+#   },options = list(pageLength = 10))
+#   
+#   
+#   ### Limit the partner countries
 
   
     
@@ -219,7 +189,7 @@ shinyServer(function(input, output, session) {
     
 
     opts <- selectizeInput("partnerCountry", tags$h4("Pick partner countries:"),
-                        choices = part_cntry, selected= part_cntry[1:10],multiple=TRUE, width="auto")
+                        choices = part_cntry, selected= part_cntry[1:20],multiple=TRUE, width="auto")
     list(opts)
    })
   
@@ -240,11 +210,6 @@ shinyServer(function(input, output, session) {
     
     shape2 <- fao_world
     
-    library(ggplot2)
-    shape$id <- rownames(shape@data)
-    map.points <- fortify(shape, region = "id")
-    map.df <- merge(map.points, shape, by = "id")
-    
     cent <- cbind(shape2@data,as.data.frame(gCentroid(shape2,byid=TRUE)))
     cent <- cent[!duplicated(cent$FAO_CODE),]
     
@@ -254,18 +219,17 @@ shinyServer(function(input, output, session) {
     }
     
     
-    
     if (input$dataType == "Export" | input$dataType == "Both")    {
       df_export <- fao_data_export()
       df_export <- df_export[df_export$Year == input$yearData,]
       df_export <- df_export[df_export$Partner.Countries %in% input$partnerCountry,]
-      #names(df_export) <- str_replace_all(names(df_export), " ", ".")
-      
+
       # Export data
       df_export3 <- merge(df_export,cent,by.x="Partner.Country.Code",by.y="FAO_CODE")
       tradepartners <- df_export3[c("Partner.Countries","Value","Item","x","y")]
       # correct country based on codes
-      fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
+      
+      fao_code <- avail_cntry[avail_cntry$country == input$reporterCountry,]$FAOST_CODE
       origin <- cent[cent$FAO_CODE == fao_code,][c("x","y")]
       routes = gcIntermediate(origin, tradepartners[,c('x', 'y')], 200, breakAtDateLine=FALSE, addStartEnd=TRUE, sp=TRUE)
       routes <- spTransform(routes, CRS("+proj=robin"))
@@ -288,14 +252,12 @@ shinyServer(function(input, output, session) {
       df_import <- fao_data_import()
       df_import <- df_import[df_import$Year == input$yearData,]
       df_import <- df_import[df_import$Partner.Countries %in% input$partnerCountry,]
-      
-      
+
       # Import data
       df_import3 <- merge(df_import,cent,by.x="Partner.Country.Code",by.y="FAO_CODE")
       tradepartners <- df_import3[c("Partner.Countries","Value","Item","x","y")]
-      #origin <- cent[cent$ADM0_NAME == input$reporterCountry,][c("x","y")]
       # correct country based on codes
-      fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
+      fao_code <- avail_cntry[avail_cntry$country == input$reporterCountry,]$FAOST_CODE
       origin <- cent[cent$FAO_CODE == fao_code,][c("x","y")]
       
       routes = gcIntermediate(origin, tradepartners[,c('x', 'y')], 200, breakAtDateLine=FALSE, addStartEnd=TRUE, sp=TRUE)
@@ -373,8 +335,7 @@ shinyServer(function(input, output, session) {
         
     year <- input$yearData
     
-    p <- ggplot()
-    p <- p + geom_polygon(data=map.df,aes(long,lat,group=group), fill="#5087CE", color="white", size=.5, alpha=.25)
+    p <- bgmap
     p <- p + lines_export + points_export + names_export
     p <- p + lines_import + points_import + names_import
     # exports
@@ -422,166 +383,82 @@ shinyServer(function(input, output, session) {
   })
   
   
-  output$export_map <- reactivePlot(function(){
+  output$export_map <- renderPlot(function(){
     plotInputMapExport()
   })
   
-#   plotInputSumLine <- reactive({
-#     
-#     df_export <- fao_data_export()
-#     df_import <- fao_data_import()
-#     
-#     
-#     maxyear <- max(df_export$Year)
-#     minyear <- min(df_export$Year)
-#   
-#    
-#   exp_sum <- df_export %>% 
-#     group_by(Year) %>% 
-#     dplyr::summarise(sum = sum(Value, na.rm = TRUE))
-#   exp_sum$var <- "Total Export"
-#   
-#   imp_sum <- df_import %>% 
-#     group_by(Year) %>% 
-#     dplyr::summarise(sum = sum(Value, na.rm = TRUE))
-#   imp_sum$var <- "Total Import"
-#   
-#   
-#   if (input$dataType == "Export") {
-#     lines_export <- geom_line(data=exp_sum,aes(x=Year,y=sum,color="Export"), size=.5, alpha=.4)
-#     points_export <- geom_point(data=exp_sum,aes(x=Year,y=sum), color="Steel Blue", size=2, show_guide = FALSE, alpha=.4)
-#     colors <- scale_color_manual(values="Steel Blue")
-#     lines_import <- element_blank()
-#     points_import <- element_blank()
-#     title_exp <- "exports"
-#   }
-#   if (input$dataType == "Import") {
-#     lines_export <- element_blank()
-#     points_export <- element_blank()
-#     colors <- scale_color_manual(values="#FF3300")
-#     lines_import <- geom_line(data=imp_sum,aes(x=Year,y=sum,color="Import"), size=.5, alpha=.4)
-#     points_import <- geom_point(data=imp_sum,aes(x=Year,y=sum), color="#FF3300", size=2, show_guide = FALSE, alpha=.4)
-#     title_exp <- "imports"
-#   }
-#   if (input$dataType == "Both") {
-#     lines_import <- geom_line(data=imp_sum,aes(x=Year,y=sum,color="Import"), size=.5, alpha=.4)
-#     points_import <- geom_point(data=imp_sum,aes(x=Year,y=sum), color="#FF3300", size=2, show_guide = FALSE, alpha=.4)
-#     lines_export <- geom_line(data=exp_sum,aes(x=Year,y=sum,color="Export"), size=.5, alpha=.4)
-#     points_export <- geom_point(data=exp_sum,aes(x=Year,y=sum), color="Steel Blue", size=2, show_guide = FALSE, alpha=.4)
-#     title_exp <- "exports and imports"
-#     colors <- scale_color_manual(values=c("Steel Blue","#FF3300"))
-#     
-#     
-#   }
-# 
-#   if (input$elementName == "Quantity") legend_title <- "Quantity in tonnes"
-#   if (input$elementName == "Value") legend_title <- "Value in 1000 US$"
-#   
-#     
-#   plot_data <- rbind(exp_sum,imp_sum)
-#   
-#   #p <- ggplot(plot_data, aes(x=Year,y=sum,color=var))
-#   p <- ggplot()
-#   p <- p + lines_export + points_export #+ names_export
-#   p <- p + lines_import + points_import #+ names_import
-#   #p <- p + geom_point() + geom_line()
-#   p <- p + colors
-#   p <- p + coord_cartesian(xlim=c(minyear,maxyear))
-#   p <- p + scale_x_continuous(breaks=minyear:maxyear)
-#   p <- p + geom_vline(xintercept=input$yearData, color="black", alpha=.4, linetype="dashed")
-#   p <- p + labs(title = paste(input$reporterCountry,"-","Total",title_exp,"of \n",input$itemName),
-#                 x=NULL, 
-#                 y= legend_title)
-#   #p <- p + scale_color_manual(values=c("Steel Blue","#FF3300"))
-#   p <- p + theme(legend.position = "top",
-#                  axis.text.x  = element_text(angle=90, vjust= 0.5),
-#                  legend.justification=c(0,0),
-#                  legend.key.size=unit(5,'mm'),
-#                  legend.key = element_blank(),
-#                  legend.direction = "horizontal",
-#                  legend.background=element_rect(colour=NA, fill=NA),
-#                  #text = element_text(family = "Open Sans"),
-#                  legend.text=element_text(size=11),
-#                  legend.title=element_blank(),
-#                  title=element_text(size=12, color="Dim Grey"),
-#                  #panel.grid.minor=element_blank(),
-#                  #panel.grid.major=element_blank(),
-#                  panel.background = element_blank(),
-#                  plot.background = element_blank()
-#                  #axis.text = element_blank(),
-#                  #axis.ticks = element_blank()#,
-#                  #plot.margin = unit(c(-3,-1.5, -3, -1.5), "cm")#,
-#                  #text=element_text(family = "Open Sans")
-#   )
-#   p
-#   })
-#   
-#   output$sumLine <- reactivePlot(function(){
-#     plotInputSumLine()
-#   })
-#   
-#   output$dlSumLine <- downloadHandler(
-#     filename = 'timeseries.pdf',
-#     content = function(file) {
-#       device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
-#       ggsave(file, plot = plotInputSumLine(), device = device)
-#     }
-#   )
+  addPopover(session, 
+             "export_map", 
+             "About the map", 
+             content = paste0("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis ornare nunc arcu, vitae consequat sapien sollicitudin vel. Donec ",
+                               "gravida eros ac ante posuere interdum. Mauris vehicula elementum dolor, ut eleifend ex accumsan et. Etiam sed",
+                               "condimentum neque, et suscipit orci. Nunc efficitur tempor suscipit. Donec volutpat tincidunt lacinia. Praesent vel sollicitudin.",
+                              "augue. Cras sit amet diam in arcu scelerisque imperdiet et at mi. Donec rutrum lacinia est, et facilisis odio vehicula quis. ",
+                              "Aliquam erat volutpat. Phasellus hendrerit efficitur ligula, eget luctus enim. In eget dignissim ipsum. Cras rhoncus ligula enim, ",
+                              "sed vehicula ligula pretium eu. Ut eget efficitur turpis. "), 
+              trigger = 'click', placement="top")
   
+  addPopover(session, 
+             "export_timeseries", 
+             "About the time-series", 
+             content = paste0("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis ornare nunc arcu, vitae consequat sapien sollicitudin vel. Donec ",
+                              "gravida eros ac ante posuere interdum. Mauris vehicula elementum dolor, ut eleifend ex accumsan et. Etiam sed",
+                              "condimentum neque, et suscipit orci. Nunc efficitur tempor suscipit. Donec volutpat tincidunt lacinia. Praesent vel sollicitudin.",
+                              "augue. Cras sit amet diam in arcu scelerisque imperdiet et at mi. Donec rutrum lacinia est, et facilisis odio vehicula quis. ",
+                              "Aliquam erat volutpat. Phasellus hendrerit efficitur ligula, eget luctus enim. In eget dignissim ipsum. Cras rhoncus ligula enim, ",
+                              "sed vehicula ligula pretium eu. Ut eget efficitur turpis. "), 
+             trigger = 'click', placement="top")
+  
+  
+  addPopover(session, 
+             "export_Barchart", 
+             "About the barchart", 
+             content = paste0("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis ornare nunc arcu, vitae consequat sapien sollicitudin vel. Donec ",
+                              "gravida eros ac ante posuere interdum. Mauris vehicula elementum dolor, ut eleifend ex accumsan et. Etiam sed",
+                              "condimentum neque, et suscipit orci. Nunc efficitur tempor suscipit. Donec volutpat tincidunt lacinia. Praesent vel sollicitudin.",
+                              "augue. Cras sit amet diam in arcu scelerisque imperdiet et at mi. Donec rutrum lacinia est, et facilisis odio vehicula quis. ",
+                              "Aliquam erat volutpat. Phasellus hendrerit efficitur ligula, eget luctus enim. In eget dignissim ipsum. Cras rhoncus ligula enim, ",
+                              "sed vehicula ligula pretium eu. Ut eget efficitur turpis. "), 
+             trigger = 'click', placement="top")
   
 
-  
-  
-  
-  
-  
-#   output$export_map2 <- reactivePlot(function(){
-#     plot(cars)
-#   })
-  
-  
   output$dlMap <- downloadHandler(
     filename = 'map_export.pdf',
     content = function(file) {
-      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
+      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Helvetica")
       ggsave(file, plot = plotInputMapExport(), device = device)
     }
   )
   
-  ### --------------------------------------------------------------------- ###
-  ## Download data
   
-#   output$dlDataMap <- downloadHandler(
-#     filename = function() { paste(input$element_name,input$item_name,'mapdata.csv', sep="-") }, 
-#     content = function(file) {
-#       write.csv(fao_data_map(), file, row.names = FALSE)
-#     }
-#   )
-
-  ### --------------------------------------------------------------------- ###
-  ##-- Export Map
+  
   
   
   #output$map <- reactivePlot(function() {
   plotInputTimeseries <- reactive({
     
     
-    
-    
-    
-    
-    
-    
+
     if (input$dataType == "Export") {
+      
+      # Because fao_data_import() subset also the item, and we want them all
+      cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == input$reporterCountry,]$FAOST_CODE), envir = globalenv())
+      
+      #load(cntry_metadata[[2]])
+      df <- cntry_metadata[[7]]
+      dat <- df[df$Item == input$itemName, ]
+      
+      if (input$elementName == "Value") dat <- dat[dat$Element == "Import Value",]
+      if (input$elementName == "Quantity") dat <- dat[dat$Element == "Import Quantity",]
+      dat
+      
+      
       df_export <- fao_data_export()
       
-      fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
-      df_export <- df_export[df_export$Reporter.Country.Code == fao_code,]
       df_export <- df_export[df_export$Partner.Countries %in% input$partnerCountry,]
       
       minYear <- min(df_export$Year)
       maxYear <- max(df_export$Year)
-      
       
       lines_export <- geom_line(data=df_export,aes(x=Year,y=Value,group=Partner.Countries,color="Export"), alpha=.4)
       points_export <- geom_point(data=df_export,aes(x=Year,y=Value,group=Partner.Countries), color="Steel Blue", size=2, show_guide = FALSE, alpha=.4)
@@ -596,8 +473,6 @@ shinyServer(function(input, output, session) {
     if (input$dataType == "Import") {
       df_import <- fao_data_import()
       
-      fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
-      df_import <- df_import[df_import$Reporter.Country.Code == fao_code,]
       df_import <- df_import[df_import$Partner.Countries %in% input$partnerCountry,]
       
       
@@ -688,27 +563,56 @@ shinyServer(function(input, output, session) {
   output$dlTimeseries <- downloadHandler(
     filename = 'timeseries_by_country.pdf',
     content = function(file) {
-      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
+      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Helvetica")
       ggsave(file, plot = plotInputTimeseries(), device = device)
     }
   )
+  
+  
+  ### --------------------------------------------------------------------- ###
+  ## -- Subset trade-matrix data
+  
+  fao_data_export_bar <- reactive({
+    
+    cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == input$reporterCountry,]$FAOST_CODE), envir = globalenv())
+    
+    df <- cntry_metadata[[7]]
+    dat <- df[df$Year == input$yearData,]
+    
+    if (input$elementName == "Value") dat <- dat[dat$Element == "Export Value",]
+    if (input$elementName == "Quantity") dat <- dat[dat$Element == "Export Quantity",]
+    dat
+  })
+  
+  ### --------------------------------------------------------------------- ###
+  ## -- Subset trade-matrix data
+  
+  fao_data_import_bar <- reactive({
+    
+    cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == input$reporterCountry,]$FAOST_CODE), envir = globalenv())
+    
+    df <- cntry_metadata[[7]]
+    dat <- df[df$Year == input$yearData,]
+    
+    if (input$elementName == "Value") dat <- dat[dat$Element == "Import Value",]
+    if (input$elementName == "Quantity") dat <- dat[dat$Element == "Import Quantity",]
+    dat
+  })
+  
+  
   
   ### Barchart
   
   plotInputBarchart <- reactive({
     
-    
-    
-    fao_code <- unique(trade_data[trade_data$Reporter.Countries == input$reporterCountry,]$Reporter.Country.Code)
-    #fao_code <- 67
-    dataa <- trade_data[trade_data$Reporter.Country.Code == fao_code, ]
-    #dataa <- dataa[dataa$Year == 2010,]
-    dataa <- dataa[dataa$Year == input$yearData,]
+    #dataa <- dataa[dataa$Year == input$yearData,]
     
     if (input$dataType == "Import" | input$dataType == "Both") {
       
-      barData <- dataa[dataa$Element %in% c("Import Quantity","Import Value"),]
-      bars_i <- barData %>% 
+      df_import <- fao_data_import_bar()
+      
+      #barData <- dataa[dataa$Element %in% c("Import Quantity","Import Value"),]
+      bars_i <- df_import %>% 
         #filter(Element == "Import Value") %>% 
         group_by(Item) %>% 
         dplyr::summarise(sum = sum(Value)) %>% 
@@ -720,9 +624,10 @@ shinyServer(function(input, output, session) {
       title_exp <- "import items"
     }
     if (input$dataType == "Export" | input$dataType == "Both") {
-      barData <- dataa[dataa$Element %in% c("Export Quantity","Export Value"),]
+      
+      df_export <- fao_data_export_bar()
     
-      bars_e <- barData %>% 
+      bars_e <- df_export %>% 
         group_by(Item) %>% 
         dplyr::summarise(sum = sum(Value)) %>% 
         arrange(sum)
@@ -741,10 +646,10 @@ shinyServer(function(input, output, session) {
     if (input$elementName == "Quantity") legend_title <- "Quantity in tonnes"
     if (input$elementName == "Value") legend_title <- "Value in 1000 US$"
     
-    p <- ggplot(bars, aes(x=Item,y=sum,fill=Item))
-    p <- p + geom_bar(stat="identity")
+    p <- ggplot(bars, aes(x=Item,y=sum))
+    p <- p + geom_bar(stat="identity", fill="#5087CE",alpha=.60)
     p <- p + coord_flip()
-    p <- p + labs(title = paste(input$reporterCountry,"30 most valuable",title_exp,"in",input$yearData),
+    p <- p + labs(title = paste(input$reporterCountry,"top 30",title_exp,"in",input$yearData),
                    x=NULL, 
                    y=legend_title)
     p <- p + theme(legend.position = "none",
@@ -779,131 +684,11 @@ shinyServer(function(input, output, session) {
   output$dlBarchart <- downloadHandler(
     filename = 'top_30_items.pdf',
     content = function(file) {
-      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
+      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Helvetica")
       ggsave(file, plot = plotInputBarchart(), device = device)
     }
   )
     
-  #### Bivariate stuff
-  
-  
-  # output$var_x_item <- renderUI({
-  #   itemNames <- itemTable[["itemName"]]
-  #   opts <- selectizeInput('varXitem', "Which item are you looking for:", choices = itemNames, selected=itemNames[1], multiple = FALSE)
-  #   list(opts)
-  # })
-  # 
-  # output$var_x_element <- renderUI({
-  #   domainCode <- itemTable[itemTable[["itemName"]] == input$varXitem, ]$domainCode
-  #   elementNames <- as.character(elementTable[elementTable[["domainCode"]] %in% domainCode, ]$elementName)
-  #   opts <- selectizeInput('varXelement', "Which element are you looking for:", choices = elementNames, multiple = FALSE)
-  #   list(opts)
-  # })
-  # 
-  # 
-  # output$var_y_item <- renderUI({
-  #   itemNames <- itemTable[["itemName"]]
-  #   opts <- selectizeInput('varYitem', "Which item are you looking for:", choices = itemNames, selected=itemNames[3], multiple = FALSE)
-  #   list(opts)
-  # })
-  # 
-  # output$var_y_element <- renderUI({
-  #   domainCode <- itemTable[itemTable[["itemName"]] == input$varYitem, ]$domainCode
-  #   elementNames <- as.character(elementTable[elementTable[["domainCode"]] %in% domainCode, ]$elementName)
-  #   opts <- selectizeInput('varYelement', "Which element are you looking for:", choices = elementNames, multiple = FALSE)
-  #   list(opts)
-  # })
-  # 
-  # 
-  # bivar_data <- reactive({
-  #   
-  #   domainCodeX <- itemTable[itemTable[["itemName"]] == input$varXitem, ]$domainCode
-  #   domainCodeY <- itemTable[itemTable[["itemName"]] == input$varYitem, ]$domainCode
-  #   
-  #   dcX <- domainCodeX
-  #   ecX <- elementTable[elementTable$elementName == input$varXelement & elementTable$domainCode == dcX,]$elementCode
-  #   icX <- itemTable[itemTable[["itemName"]] == input$varXitem, ]$itemCode
-  #   
-  #   dcY <- domainCodeY
-  #   ecY <- elementTable[elementTable$elementName == input$varYelement & elementTable$domainCode == dcY,]$elementCode
-  #   icY <- itemTable[itemTable[["itemName"]] == input$varYitem, ]$itemCode
-  #   
-  #   
-  #   Xvar <- getFAOtoSYB(domainCode = dcX, 
-  #                      elementCode = ecX,
-  #                      itemCode = icX)
-  #   X <- Xvar[["entity"]]
-  #   
-  #   Yvar <- getFAOtoSYB(domainCode = dcY, 
-  #                       elementCode = ecY,
-  #                       itemCode = icY)
-  #   Y <- Yvar[["entity"]]
-  # 
-  #   XY <- inner_join(X, Y, by = c("FAOST_CODE","Year"))
-  #   na.omit(XY) 
-  #     
-  # })
-  # 
-  # 
-  # output$bivar_year <- renderUI({
-  #   year_ss <- bivar_data()
-  #   unique(year_ss$Year)
-  #   opts <- sliderInput("bivarYear", "", min = min(year_ss$Year), max = max(year_ss$Year), value = max(year_ss$Year), step = 1)
-  #   list(opts)
-  # })
-  # 
-  # 
-  # 
-  # 
-  # 
-  # output$single_scatter <- reactivePlot(function() {
-  #   
-  #   plot_data <- bivar_data()
-  #   plot_data <- plot_data[plot_data$Year == input$bivarYear,]
-  #   names(plot_data) <- c("FAOST_CODE","Year","valueX","valueY")
-  #   plot_data <- merge(plot_data,reg,by="FAOST_CODE")
-  #   
-  #   p <- ggplot(plot_data, aes(x=valueX, y=valueY,group=1,color=Region,label=Country))
-  #   p <- p + geom_point()
-  #   p <- p + geom_text()
-  #   p <- p + theme_minimal() + 
-  #     theme(legend.position = "top") + 
-  #     theme(text = element_text(family = "Open Sans", size= 12)) +
-  #     theme(legend.title = element_text(size = 10, face = "bold")) +
-  #     theme(axis.text= element_text(size = 10)) +
-  #     theme(axis.title = element_text(size = 10, face = "bold")) +
-  #     theme(legend.text= element_text(size = 10)) +
-  #     theme(strip.text = element_text(size = 14, face="bold")) +
-  #     guides(colour = guide_legend(override.aes = list(size=4)))
-  #   p <- p + labs(x=input$varXitem,y=input$varYitem)
-  #   p <- p + geom_smooth(method = "loess")
-  #   print(p)
-  # })
-  # 
-  # 
-  # output$multi_scatter <- reactivePlot(function() {
-  #   
-  #   plot_data <- bivar_data()
-  #   names(plot_data) <- c("FAOST_CODE","Year","valueX","valueY")
-  #   plot_data <- merge(plot_data,reg,by="FAOST_CODE")
-  #   
-  #   p <- ggplot(plot_data, aes(x=valueX, y=valueY, group=1,color=Region,label=Country))
-  #   p <- p + geom_point()
-  #   p <- p + geom_text(size=2.5)
-  #   p <- p + theme_minimal() + 
-  #     theme(legend.position = "top") + 
-  #     theme(text = element_text(family = "Open Sans", size= 12)) +
-  #     theme(legend.title = element_text(size = 10, face = "bold")) +
-  #     theme(axis.text= element_text(size = 10)) +
-  #     theme(axis.title = element_text(size = 10, face = "bold")) +
-  #     theme(legend.text= element_text(size = 10)) +
-  #     theme(strip.text = element_text(size = 14, face="bold")) +
-  #     guides(colour = guide_legend(override.aes = list(size=4)))
-  #   p <- p + labs(x=input$varXitem,y=input$varyitem)
-  #   p <- p + facet_wrap(~Year)
-  #   p <- p + geom_smooth(method = "loess")
-  #   print(p)
-  # })
   
   
 })

@@ -1,11 +1,11 @@
 # Select countries for the preview - top 5 from each region based on import value on 2012
-## see file country_relection.Rmd
+# see file country_relection.Rmd
 
-library(readr)
-library(dplyr)
-library(stringr)
-# 
-# 
+# library(readr)
+# library(dplyr)
+# library(stringr)
+# # 
+# # 
 # # Read trade-matrix data by country
 # datasets <- list.files("../shiny_app_raw_data/trade_matrix_preview/", full.names = T)
 # # Remove the path
@@ -13,13 +13,16 @@ library(stringr)
 # filenames <- as.numeric(str_replace_all(datasets_nopaths, ".csv", ""))
 # 
 # avail_cntry <- data.frame()
+# meta_list <- list()
 # for (i in 1:length(datasets)) {
 #   df <- read_csv(datasets[i])
 #   # Subset data to include only 20 most important items and 20 most important partners in year 2012
 #   im <- df[df$Element %in% c("Import Value","Import Quantity"),]
 #   ex <- df[df$Element %in% c("Export Value","Export Quantity"),]
 #   import_max <- max(im$Year)
+#   import_min <- min(im$Year)
 #   export_max <- max(ex$Year)
+#   export_min <- min(ex$Year)
 #   im_ss <- im[im$Year == import_max & im$Element == "Import Value",]
 #   ex_ss <- ex[ex$Year == export_max & ex$Element == "Export Value",]
 #   # Most valuable Items
@@ -33,15 +36,28 @@ library(stringr)
 #   exs <- ex_items$Item[1:20]
 #   df <- df[df$Item %in% c(ims,exs),]
 #   names(df) <- str_replace_all(names(df), " ", ".")
-#   save(df,file=paste0("datasets/",filenames[i],".RData"))
+#   #save(df,file=paste0("datasets/",filenames[i],".RData"))
 #   smr <- data.frame(FAOST_CODE = filenames[i],
 #                     country = unique(df$Reporter.Countries),
 #                     location = paste0("datasets/",filenames[i],".RData"),
 #                     stringsAsFactors = FALSE)
 #   avail_cntry <- rbind(avail_cntry,smr)
+# 
+#   # Create the metalist
+#   country <- unique(df$Reporter.Countries)
+#   location <- paste0("datasets/",filenames[i],".RData")
+#   import_item_list <- ims
+#   export_item_list <- exs
+#   import_range <- import_min:import_max
+#   export_range <- export_min:export_max
+#   data <- df
+#   meta_list <- list(country,location,import_item_list,export_item_list,import_range,export_range,data)
+#   assign(paste0("metalist",filenames[i]),meta_list)
 # }
-# save(avail_cntry, file="avail_cntry.RData")
-
+# metalists <- apropos("^metalist")
+# rm(list=setdiff(ls(), c("avail_cntry",metalists)))
+# save.image(file="metadata.RData")
+load("metadata.RData")
 
 library(stringr)
 
@@ -99,12 +115,27 @@ library(stringr)
 # save(graticule, file="graticule.RData")
 
 load("fao_world.RData")
+
+
+
+
 #shape <- spTransform(fao_world, CRS("+proj=robin"))
 #save(shape, file="shape.RData")
 #grat_robin <- spTransform(graticule, CRS("+proj=robin"))  # reproject graticule
 #save(grat_robin, file="grat_robin.RData")
 load("grat_robin.RData")
 load("shape.RData")
+
+# Create background map here once to improve the speed!
+library(ggplot2)
+shape$id <- rownames(shape@data)
+map.points <- fortify(shape, region = "id")
+map.df <- merge(map.points, shape, by = "id")
+
+# Create the background map
+bgmap <- ggplot()
+bgmap <- bgmap + geom_polygon(data=map.df,aes(long,lat,group=group), fill="#5087CE", color="white", size=.5, alpha=.25)
+
 load("fao_world_centroids.RData")
 load("graticule.RData")
 

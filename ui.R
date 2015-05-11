@@ -3,6 +3,7 @@
 # Install:
 #   devtools::install_github("jcheng5/googleCharts")
 library(shiny)
+library(shinyBS)
 
 shinyUI(fluidPage(
   title = "FAOSTAT Trade Matrix Explorer",
@@ -26,97 +27,71 @@ shinyUI(fluidPage(
                                 ), 
 
                                 tags$h1("FAOSTAT Trade Matrix Explorer"),
-
-
-
-
-#                                 sidebarLayout(
-#                                   
-#                                   sidebarPanel(
-#                                     tags$h4("Hello world"), 
-#                                     tags$p("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras semper, metus ac convallis vestibulum, elit arcu imperdiet neque, nec interdum quam dolor at libero."),
-#                                     tags$br(),
-#                                     uiOutput("reporter_country"),
-#                                     uiOutput("item"),
-#                                     uiOutput("element"),
-#                                     tags$hr(),
-#                                     radioButtons("dataType", label = "Show",inline = TRUE, choices = list("Import", "Export", "Both"), selected = "Import"),
-#                                     uiOutput("year_data"),
-#                                     downloadButton('dlMap', 'Save map in A4 vector pdf'),
-#                                     downloadButton('dlTimeseries', 'Save time-series in A4 vector pdf'),
-#                                     tags$br(),
-#                                     tags$br(),
-#                                     tags$p("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras semper, metus ac convallis vestibulum, elit arcu imperdiet neque, nec interdum quam dolor at libero."),
-#                                     tags$img(src="http://koti.kapsi.fi/~muuankarski/fao/visualisation/gif/logo200.png")
-#                                   ),
-                                  
-                                  #mainPanel(
-                                    #tabsetPanel(
-                                    #  tabPanel(
-
+                                tags$hr(),
+                                # -----------------------------------------------------------------------------------
+                                tags$i("We could have a general introduction to the application. We could also state that by clicking the plots you get extra information about the plots.",
+                                       "Also we could write about something else here. Add a link or just wish people a good day"),
+                                tags$br(),
+                                tags$i("We could have a general introduction to the application. We could also state that by clicking the plots you get extra information about the plots.",
+                                       "Also we could write about something else here. Add a link or just wish people a good day"),
+                                tags$hr(),
+                                # -----------------------------------------------------------------------------------
                                   fluidRow(
-                                    shiny::column(4, radioButtons("dataType", tags$h4("Show"),inline = TRUE, choices = list("Import", "Export", "Both"), selected = "Import")),
-                                    shiny::column(4, uiOutput("reporter_country")),
-                                    shiny::column(4, uiOutput("element"))
+                                    shiny::column(4, radioButtons("dataType", tags$h4("Show"),inline = TRUE, choices = list("Import", "Export", "Both"), selected = "Import"),
+                                                  bsTooltip("dataType", "Select Import, Export or both", "bottom", options = list(container = "body"))),
+                                    shiny::column(4, uiOutput("reporter_country"),
+                                                  bsTooltip("reporter_country", "Only limited number of reporter countries presented currently", "bottom", options = list(container = "body"))),
+                                    shiny::column(4, uiOutput("element"),
+                                                  bsTooltip("element", "Value in 1000 US$ or quantity in tonnes", "bottom", options = list(container = "body")))
                                   ),
                                   fluidRow(
-                                    shiny::column(4, tags$i("")),
-                                    shiny::column(4, tags$i("Only limited number of reporter countries presented currently")),
-                                    shiny::column(4, tags$i("Value in 1000 US$ or quantity in tonnes"))
-                                  ),
-                                  fluidRow(
-                                    shiny::column(4, uiOutput("year_data")),
-                                    shiny::column(4, uiOutput("item")),
-                                    shiny::column(4, tags$h4("Download:"),
+                                    shiny::column(4, uiOutput("year_data"),
+                                                  bsTooltip("year_data", "Pick a year for the map & bar chart", "bottom", options = list(container = "body"))),
+                                    shiny::column(4, uiOutput("item"),
+                                                  bsTooltip("item", "Showing top 20 items based on export/import value of the latest year", "bottom", options = list(container = "body"))),
+                                    shiny::column(4, tags$h4("Download in A4 vector-pdf format:"), 
                                                   downloadButton('dlMap', 'Map'),
                                                   downloadButton('dlBarchart', 'Top 30 items'),
                                                   downloadButton('dlTimeseries', 'Time-series by country')
                                                   )
                                   ),
                                   fluidRow(
-                                    shiny::column(4, tags$i("")),
-                                    shiny::column(4, tags$i("Showing top 20 items based on export/import value of the latest year")),
-                                    shiny::column(4, tags$i("Get graphs in A4 vector-pdf format"))
+                                    shiny::column(12, uiOutput("limit_partner"),
+                                                  bsTooltip("limit_partner", "showing maximun of top 20 partner countries by default", "bottom", options = list(container = "body")))
                                   ),
-                                  fluidRow(
-                                    shiny::column(12, uiOutput("limit_partner"))
-                                  ),
-                                  fluidRow(
-                                    shiny::column(12, tags$i("showing maximun of top 10 partner countries by default"))
-                                  ),
-#                                   mainPanel(
-#                                         tabsetPanel(tabPanel("Map", plotOutput("export_map",height="800px", width="auto")),
-#                                                     tabPanel("Sum lines", plotOutput("sumline",height="800px", width="auto")),
-#                                                     tabPanel("Time-series", plotOutput("export_timeseries",height="800px", width="auto"))
-#                                             )
-#                                         ),
+                                  tags$hr(),
 
-                              tabsetPanel(tabPanel("Map", plotOutput("export_map",height="750px", width="auto")),
-                                          tabPanel("Time-series by partner country", plotOutput("export_timeseries",height="500px", width="auto")),
-                                          tabPanel("Top 30 items", plotOutput("export_Barchart",height="500px", width="auto"))
-                                          #tabPanel("Table", dataTableOutput("mytable"))
-                                                                                       ),
+                                  tabsetPanel(tabPanel("Map", plotOutput("export_map",height="750px", width="auto")),
+                                              tabPanel("Time-series by partner country", plotOutput("export_timeseries",height="500px", width="auto")),
+                                              tabPanel("Top 30 items", plotOutput("export_Barchart",height="500px", width="auto"))
+                                              #tabPanel("Table", dataTableOutput("mytable"))
+                                                                                           ),
+                              tags$hr(),
+                              tags$img(src="http://koti.kapsi.fi/~muuankarski/fao/visualisation/gif/logo200.png"),
+                              tags$br(),
+                              tags$br(),
+                              tags$a(href="https://github.com/UNFAOstatistics/trade_matrix", "Code in Github")
 
 #                                  plotOutput("export_map", height="700px", width="auto"),
 
-                                  fluidRow(
-                                    shiny::column(12, tags$a( href="https://github.com/UNFAOstatistics/trade_matrix", "Code in Github"))#,
+#                                  fluidRow(
+#                                    shiny::column(12, tags$a( href="https://github.com/UNFAOstatistics/trade_matrix", "Code in Github"))#,
                                     #shiny::column(6, tags$br(),tags$br(),tags$img(src="http://koti.kapsi.fi/~muuankarski/fao/visualisation/gif/logo200.png"))
-                                  ),
-
-                                  
-                                  tags$script(HTML("var header = $('navbar > .container');
-                                                                                         header.append('<div style=\"float:right\"><a href=\"https://twitter.com/share\" class=\"twitter-share-button\" aling=\"middle\" data-url=\"www.mywebsite.com\" data-text=\"Visit www.mywebsite.com\" data-size=\"large\">Tweet</a></div>');
-                                                                                         console.log(header)")),
-                                  tags$script(HTML("!function(d,s,id){
-                                                                              var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';
-                                                                              if(!d.getElementById(id)){
-                                                                                      js=d.createElement(s);
-                                                                                      js.id=id;
-                                                                                      js.src=p+'://platform.twitter.com/widgets.js';
-                                                                                      fjs.parentNode.insertBefore(js,fjs);
-                                                                              }
-                                    }(document, 'script', 'twitter-wjs');"))
+#                                  )#,
+# 
+#                                   
+#                                   tags$script(HTML("var header = $('navbar > .container');
+#                                                                                          header.append('<div style=\"float:right\"><a href=\"https://twitter.com/share\" class=\"twitter-share-button\" aling=\"middle\" data-url=\"www.mywebsite.com\" data-text=\"Visit www.mywebsite.com\" data-size=\"large\">Tweet</a></div>');
+#                                                                                          console.log(header)")),
+#                                   tags$script(HTML("!function(d,s,id){
+#                                                                               var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';
+#                                                                               if(!d.getElementById(id)){
+#                                                                                       js=d.createElement(s);
+#                                                                                       js.id=id;
+#                                                                                       js.src=p+'://platform.twitter.com/widgets.js';
+#                                                                                       fjs.parentNode.insertBefore(js,fjs);
+#                                                                               }
+#                                     }(document, 'script', 'twitter-wjs');"))
                                 
 
 
