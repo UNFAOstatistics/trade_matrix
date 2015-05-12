@@ -18,7 +18,7 @@ shinyUI(fluidPage(
                                 tags$h1("FAOSTAT Trade Matrix Explorer"),
 
                                 fluidRow(
-                                  shiny::column(8, tags$h3("Hello World"), 
+                                  shiny::column(8, tags$h3(""), 
                                                 tags$i("We could have a general introduction to the application.",
                                                        "We could also state that by clicking the plots you get extra information about the plots.",
                                                        "Also we could write about something else here. Add a link or just wish people a good day")),
