@@ -23,7 +23,7 @@ shinyUI(fluidPage(
                                                        "We could also state that by clicking the plots you get extra information about the plots.",
                                                        "Also we could write about something else here. Add a link or just wish people a good day")),
                                   shiny::column(4, tags$h3("Dear heavy-users"),
-                                                tags$a(href="https://github.com/UNFAOstatistics/trade_matrix/blob/master/README.md","Please download the app and run it locally by following the instruction"))
+                                                tags$a(href="https://github.com/UNFAOstatistics/trade_matrix/blob/master/README.md","Please follow these instructions to download the app and run it locally"))
                                 ),
                                 tags$hr(),
                                 # -----------------------------------------------------------------------------------
