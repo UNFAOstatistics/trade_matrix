@@ -409,7 +409,7 @@ shinyServer(function(input, output, session) {
   output$dlMap <- downloadHandler(
       filename = 'map.pdf',
       content = function(file) {
-        device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
+        device <- function(..., width, height) grDevices::pdf(..., width = 23.4, height = 16.5)
 #       filename = 'map.png',
 #       content = function(file) {
 #       device <- function(..., width, height) grDevices::png(..., width = 1200, height = 750) 
@@ -550,7 +550,7 @@ shinyServer(function(input, output, session) {
   output$dlTimeseries <- downloadHandler(
     filename = 'timeseries_by_country.pdf',
     content = function(file) {
-      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
+      device <- function(..., width, height) grDevices::pdf(..., width = 23.4, height = 16.5)
 #     filename = 'timeseries_by_country.png',
 #     content = function(file) {
 #       device <- function(..., width, height) grDevices::png(..., width = 1200, height = 750)
@@ -681,7 +681,7 @@ shinyServer(function(input, output, session) {
   output$dlBarchart <- downloadHandler(
     filename = 'top_30_items.pdf',
     content = function(file) {
-      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
+      device <- function(..., width, height) grDevices::pdf(..., width = 23.4, height = 16.5)
 #     filename = 'top_30_items.png',
 #     content = function(file) {
 #       device <- function(..., width, height) grDevices::png(..., width = 1200, height = 750)
