@@ -53,9 +53,9 @@ shinyUI(fluidPage(
                                   ),
                                   tags$hr(),
 
-                                  tabsetPanel(tabPanel("Map", plotOutput("export_map",height="900px", width="auto")),
-                                              tabPanel("Time-series by partner country", plotOutput("export_timeseries",height="500px", width="auto")),
-                                              tabPanel("Top 30 items", plotOutput("export_Barchart",height="750px", width="auto"))
+                                  tabsetPanel(tabPanel("Map", plotOutput("export_map",height="600px", width="auto")),
+                                              tabPanel("Time-series by partner country", plotOutput("export_timeseries",height="600px", width="auto")),
+                                              tabPanel("Top 30 items", plotOutput("export_Barchart",height="600px", width="auto"))
                                               #tabPanel("Table", dataTableOutput("mytable"))
                                                                                            ),
                               tags$hr(),
