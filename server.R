@@ -188,7 +188,7 @@ shinyServer(function(input, output, session) {
     }
     
 
-    opts <- selectizeInput("partnerCountry", tags$h4("Pick partner countries:"),
+    opts <- selectInput("partnerCountry", tags$h4("Pick partner countries:"),
                         choices = part_cntry, selected= part_cntry[1:20],multiple=TRUE, width="auto")
     list(opts)
    })

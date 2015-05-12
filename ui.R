@@ -2,7 +2,7 @@ library(shiny)
 library(shinyBS)
 
 shinyUI(fluidPage(
-  title = "FAOSTAT Trade Matrix Explorer",
+  # title = "FAOSTAT Trade Matrix Explorer",
 
                                 tags$head(
                                   # Include our custom CSS
@@ -15,17 +15,17 @@ shinyUI(fluidPage(
                                   )
                                 ), 
 
-                                tags$h1("FAOSTAT Trade Matrix Explorer"),
+                                # tags$h1("FAOSTAT Trade Matrix Explorer"),
 
-                                fluidRow(
-                                  shiny::column(8, tags$h3("Hello World"), 
-                                                tags$i("We could have a general introduction to the application.",
-                                                       "We could also state that by clicking the plots you get extra information about the plots.",
-                                                       "Also we could write about something else here. Add a link or just wish people a good day")),
-                                  shiny::column(4, tags$h3("Dear heavy-users"),
-                                                tags$a(href="https://github.com/UNFAOstatistics/trade_matrix/blob/master/README.md","Please follow these instructions to download the app and run it locally"))
-                                ),
-                                tags$hr(),
+                                # fluidRow(
+#                                   shiny::column(8, tags$h3("Hello World"), 
+#                                                 tags$i("We could have a general introduction to the application.",
+#                                                        "We could also state that by clicking the plots you get extra information about the plots.",
+#                                                        "Also we could write about something else here. Add a link or just wish people a good day")),
+#                                   shiny::column(4, tags$h3("Dear heavy-users"),
+#                                                 tags$a(href="https://github.com/UNFAOstatistics/trade_matrix/blob/master/README.md","Please follow these instructions to download the app and run it locally"))
+#                                 ),
+#                                 tags$hr(),
                                 # -----------------------------------------------------------------------------------
                                   fluidRow(
                                     shiny::column(4, radioButtons("dataType", tags$h4("Show"),inline = TRUE, choices = list("Import", "Export", "Both"), selected = "Import"),
@@ -57,11 +57,11 @@ shinyUI(fluidPage(
                                               tabPanel("Time-series by partner country", plotOutput("export_timeseries",height="600px", width="auto")),
                                               tabPanel("Top 30 items", plotOutput("export_Barchart",height="600px", width="auto"))
                                               #tabPanel("Table", dataTableOutput("mytable"))
-                                                                                           ),
-                              tags$hr(),
-                              tags$img(src="http://koti.kapsi.fi/~muuankarski/fao/visualisation/gif/logo200.png"),
-                              tags$br(),
-                              tags$br(),
-                              tags$a(href="https://github.com/UNFAOstatistics/trade_matrix", "Code in Github")
+                                                                                            )#,
+#                               tags$hr(),
+#                               tags$img(src="http://koti.kapsi.fi/~muuankarski/fao/visualisation/gif/logo200.png"),
+#                               tags$br(),
+#                               tags$br(),
+#                               tags$a(href="https://github.com/UNFAOstatistics/trade_matrix", "Code in Github")
 )
 )
