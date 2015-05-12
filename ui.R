@@ -40,7 +40,7 @@ shinyUI(fluidPage(
                                                   bsTooltip("year_data", "Pick a year for the map & bar chart", "bottom", options = list(container = "body"))),
                                     shiny::column(4, uiOutput("item"),
                                                   bsTooltip("item", "Showing top 20 items based on export/import VALUE of the latest year in the time-series. Items are ordered by value.", "bottom", options = list(container = "body"))),
-                                    shiny::column(4, tags$h4("Download plots in .png format:"),  #tags$h4("Download in A4 vector-pdf format:"), 
+                                    shiny::column(4, tags$h4("Download in A4 vector-pdf format:"), 
                                                   #radioButtons("graphic_format", "",inline = TRUE, choices = list("vector .pdf", "bitmap .png"), selected = "bitmap .png"),
                                                   downloadButton('dlMap', 'Map'),
                                                   downloadButton('dlTimeseries', 'Time-series by country'),

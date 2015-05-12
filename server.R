@@ -281,7 +281,7 @@ shinyServer(function(input, output, session) {
     if (input$dataType == "Export") {
       lines_export <- geom_line(data=greatcircles_export,aes(long,lat,group=group, alpha=Value), size=1.5, color="Steel Blue", show_guide = FALSE)
       points_export <- geom_point(data=fortifiedpartners_export, aes(long,lat,size=Value),color="Steel Blue", shape=1)
-      names_export <- geom_text(data=fortifiedpartners_export, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=4, alpha=.8, family="Open Sans")
+      names_export <- geom_text(data=fortifiedpartners_export, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=4, alpha=.8)
       title_exp <- "export"
       #colors <- scale_color_manual(values="Steel Blue")
       lines_import <- element_blank()
@@ -325,11 +325,11 @@ shinyServer(function(input, output, session) {
     # exports
 #     p <- p + geom_line(data=greatcircles_export,aes(long,lat,group=group, alpha=Value), color="#FF3300", size=.5)
 #     p <- p + geom_point(data=fortifiedpartners_export, aes(long,lat,size=Value),color="#FF3300", shape=1)
-#     p <- p + geom_text(data=fortifiedpartners_export, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=2, alpha=.6, family="Open Sans")
+#     p <- p + geom_text(data=fortifiedpartners_export, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=2, alpha=.6)
 #     # imports
 #     p <- p + geom_line(data=greatcircles_import,aes(long,lat,group=group, alpha=Value), color="Steel Blue", size=.5)
 #     p <- p + geom_point(data=fortifiedpartners_import, aes(long,lat,size=Value),color="Steel Blue", shape=1)
-#     p <- p + geom_text(data=fortifiedpartners_import, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=2, alpha=.6, family="Open Sans")
+#     p <- p + geom_text(data=fortifiedpartners_import, aes(long,lat,label=Partner.Countries),color="Dim Grey", size=2, alpha=.6)
     # 
     p <- p + scale_size(name = legend_title, range = c(1,6))
     p <- p + coord_equal()
@@ -344,10 +344,10 @@ shinyServer(function(input, output, session) {
                    legend.direction = "vertical",
                    legend.background=element_rect(colour=NA, fill=NA),
                    #text = element_text(family = "Open Sans"),
-                   legend.text=element_text(size=11, family="Open Sans"),
+                   legend.text=element_text(size=11),
                    legend.key = element_blank(),
-                   legend.title=element_text(size=11, family="Open Sans", face="bold"),
-                   title=element_text(size=14, color="Dim Grey", family="Open Sans"),
+                   legend.title=element_text(size=11, face="bold"),
+                   title=element_text(size=14, color="Dim Grey"),
                    panel.grid.minor=element_blank(),
                    panel.grid.major=element_blank(),
                    panel.background = element_blank(),
@@ -407,19 +407,13 @@ shinyServer(function(input, output, session) {
   
 
   output$dlMap <- downloadHandler(
-#     if (input$graphic_format == "vector .pdf"){
-#       filename = 'map.pdf'
-#       content = function(file) {
-#         device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
-#         ggsave(file, plot = plotInputMapExport(), device = device)
-#       }
-#     }
-#     if (input$graphic_format == "bitmap .png"){
-      filename = 'map.png',
+      filename = 'map.pdf',
       content = function(file) {
-      device <- function(..., width, height) grDevices::png(..., width = 1200, height = 750) 
+        device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
+#       filename = 'map.png',
+#       content = function(file) {
+#       device <- function(..., width, height) grDevices::png(..., width = 1200, height = 750) 
       ggsave(file, plot = plotInputMapExport(), device = device)
-      # }
     }
   )
   
@@ -493,10 +487,10 @@ shinyServer(function(input, output, session) {
       
     lines_export <- geom_line(data=df_export,aes(x=Year,y=Value,group=Partner.Countries,color="Export"), alpha=.4)
     points_export <- geom_point(data=df_export,aes(x=Year,y=Value,group=Partner.Countries), color="Steel Blue", size=2, show_guide = FALSE, alpha=.4)
-    names_export <- geom_text(data=merge(df_export, aggregate(Year ~ Partner.Countries, df_export, max), by=c("Year","Partner.Countries")), aes(x=Year, y = Value, label=Partner.Countries), hjust=-0.1,vjust=-1,size=4, alpha=.4, color="Steel Blue", family="Open Sans")
+    names_export <- geom_text(data=merge(df_export, aggregate(Year ~ Partner.Countries, df_export, max), by=c("Year","Partner.Countries")), aes(x=Year, y = Value, label=Partner.Countries), hjust=-0.1,vjust=-1,size=4, alpha=.4, color="Steel Blue")
     lines_import <- geom_line(data=df_import,aes(x=Year,y=Value,group=Partner.Countries,color="Import"), alpha=.4)
     points_import <- geom_point(data=df_import,aes(x=Year,y=Value,group=Partner.Countries), color="#FF3300", size=2, show_guide = FALSE, alpha=.4)
-    names_import <- geom_text(data=merge(df_import, aggregate(Year ~ Partner.Countries, df_import, max), by=c("Year","Partner.Countries")), aes(x=Year, y = Value, label=Partner.Countries), hjust=-0.1,vjust=-.5,size=4, alpha=.4,color="#FF3300", family="Open Sans")
+    names_import <- geom_text(data=merge(df_import, aggregate(Year ~ Partner.Countries, df_import, max), by=c("Year","Partner.Countries")), aes(x=Year, y = Value, label=Partner.Countries), hjust=-0.1,vjust=-.5,size=4, alpha=.4,color="#FF3300")
       title_exp <- "exports and imports"
       colors <- scale_color_manual(values=c("Steel Blue","#FF3300"))
       
@@ -528,9 +522,9 @@ shinyServer(function(input, output, session) {
                    legend.direction = "horizontal",
                    legend.background=element_rect(colour=NA, fill=NA),
                    #text = element_text(family = "Open Sans"),
-                   legend.text=element_text(size=11, family="Open Sans"),
+                   legend.text=element_text(size=11),
                    legend.title=element_blank(),
-                   title=element_text(size=14, color="Dim Grey", family="Open Sans"),
+                   title=element_text(size=14, color="Dim Grey"),
                    #panel.grid.minor=element_blank(),
                    #panel.grid.major=element_blank(),
                    panel.background = element_blank(),
@@ -554,12 +548,12 @@ shinyServer(function(input, output, session) {
   })
   
   output$dlTimeseries <- downloadHandler(
-#     filename = 'timeseries_by_country.pdf',
-#     content = function(file) {
-#       device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Arial")
-    filename = 'timeseries_by_country.png',
+    filename = 'timeseries_by_country.pdf',
     content = function(file) {
-      device <- function(..., width, height) grDevices::png(..., width = 1200, height = 750)
+      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
+#     filename = 'timeseries_by_country.png',
+#     content = function(file) {
+#       device <- function(..., width, height) grDevices::png(..., width = 1200, height = 750)
       ggsave(file, plot = plotInputTimeseries(), device = device)
     }
   )
@@ -662,9 +656,9 @@ shinyServer(function(input, output, session) {
                    legend.direction = "horizontal",
                    legend.background=element_rect(colour=NA, fill=NA),
                    #text = element_text(family = "Open Sans"),
-                   legend.text=element_text(size=11, family="Open Sans"),
+                   legend.text=element_text(size=11),
                    legend.title=element_blank(),
-                   title=element_text(size=14, color="Dim Grey", family="Open Sans"),
+                   title=element_text(size=14, color="Dim Grey"),
                    #panel.grid.minor=element_blank(),
                    #panel.grid.major=element_blank(),
                    panel.background = element_blank(),
@@ -685,13 +679,13 @@ shinyServer(function(input, output, session) {
   })
   
   output$dlBarchart <- downloadHandler(
-#     filename = 'top_30_items.pdf',
-#     content = function(file) {
-#       device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Arial")
-    filename = 'top_30_items.png',
+    filename = 'top_30_items.pdf',
     content = function(file) {
-      device <- function(..., width, height) grDevices::png(..., width = 1200, height = 750)
-      ggsave(file, plot = plotInputBarchart(), device = device)
+      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
+#     filename = 'top_30_items.png',
+#     content = function(file) {
+#       device <- function(..., width, height) grDevices::png(..., width = 1200, height = 750)
+    ggsave(file, plot = plotInputBarchart(), device = device)
     }
   )
     
