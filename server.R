@@ -407,13 +407,19 @@ shinyServer(function(input, output, session) {
   
 
   output$dlMap <- downloadHandler(
-#     filename = 'map_export.pdf',
-#     content = function(file) {
-#       device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Arial")
-    filename = 'map.png',
-    content = function(file) {
-      device <- function(..., width, height) grDevices::png(..., width = 1200, height = 750)
+#     if (input$graphic_format == "vector .pdf"){
+#       filename = 'map.pdf'
+#       content = function(file) {
+#         device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3)
+#         ggsave(file, plot = plotInputMapExport(), device = device)
+#       }
+#     }
+#     if (input$graphic_format == "bitmap .png"){
+      filename = 'map.png',
+      content = function(file) {
+      device <- function(..., width, height) grDevices::png(..., width = 1200, height = 750) 
       ggsave(file, plot = plotInputMapExport(), device = device)
+      # }
     }
   )
   

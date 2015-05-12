@@ -30,9 +30,9 @@ If you have git installed you can do
     
     git clone git@github.com:UNFAOstatistics/trade_matrix.git
 
-And then change directory to `trade_matrix` folder and run `runApp()`
+And then change (working)directory to `trade_matrix` folder and run `runApp()`
 
-If you don't have git, you can just [download the zipfile](https://github.com/UNFAOstatistics/trade_matrix/archive/master.zip), unzip and change to that directory and run `runApp()`.
+If you don't have git, you can just [download the zipfile](https://github.com/UNFAOstatistics/trade_matrix/archive/master.zip), unzip and change (working)directory where the files are and run `runApp()`.
 
 
 License: GPL (>= 2) + file LICENSE
