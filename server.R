@@ -407,9 +407,12 @@ shinyServer(function(input, output, session) {
   
 
   output$dlMap <- downloadHandler(
-    filename = 'map_export.pdf',
+#     filename = 'map_export.pdf',
+#     content = function(file) {
+#       device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Arial")
+    filename = 'map.png',
     content = function(file) {
-      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Arial")
+      device <- function(..., width, height) grDevices::png(..., width = 1200, height = 750)
       ggsave(file, plot = plotInputMapExport(), device = device)
     }
   )
@@ -545,9 +548,12 @@ shinyServer(function(input, output, session) {
   })
   
   output$dlTimeseries <- downloadHandler(
-    filename = 'timeseries_by_country.pdf',
+#     filename = 'timeseries_by_country.pdf',
+#     content = function(file) {
+#       device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Arial")
+    filename = 'timeseries_by_country.png',
     content = function(file) {
-      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Arial")
+      device <- function(..., width, height) grDevices::png(..., width = 1200, height = 750)
       ggsave(file, plot = plotInputTimeseries(), device = device)
     }
   )
@@ -673,9 +679,12 @@ shinyServer(function(input, output, session) {
   })
   
   output$dlBarchart <- downloadHandler(
-    filename = 'top_30_items.pdf',
+#     filename = 'top_30_items.pdf',
+#     content = function(file) {
+#       device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Arial")
+    filename = 'top_30_items.png',
     content = function(file) {
-      device <- function(..., width, height) grDevices::pdf(..., width = 11.7, height = 8.3, family = "Arial")
+      device <- function(..., width, height) grDevices::png(..., width = 1200, height = 750)
       ggsave(file, plot = plotInputBarchart(), device = device)
     }
   )
