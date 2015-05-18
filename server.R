@@ -8,12 +8,14 @@ library(sp)
 library(rgeos)
 library(plyr)
 library(geosphere)
-library(extrafont)
-loadfonts()
+#library(extrafont)
+#loadfonts()
 library(stringr)
 library(rgdal)
 library(grid)
 library(gridExtra)
+
+
 
 shinyServer(function(input, output, session) {
   
@@ -33,7 +35,7 @@ shinyServer(function(input, output, session) {
     #reporter_countries <- unique(trade_data$Reporter.Countries)
     reporter_countries <- avail_cntry$country
     opts <- selectInput("reporterCountry", tags$h4("Pick a reporter country:"),
-                        choices = reporter_countries, selected="Germany")
+                        choices = reporter_countries)
     list(opts)
   })
   
@@ -45,20 +47,21 @@ shinyServer(function(input, output, session) {
     
     
     cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == input$reporterCountry,]$FAOST_CODE), envir = globalenv())
+    #cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == "Germany",]$FAOST_CODE), envir = globalenv())
     
     if (input$dataType == "Import") {
 
-      itemList <- cntry_metadata[[3]]
+      itemList <- cntry_metadata[[2]]
       
     }
     if (input$dataType == "Export") {
       
-      itemList <- cntry_metadata[[4]]
+      itemList <- cntry_metadata[[3]]
     }
     if (input$dataType == "Both") {
       
-      items_exp <- cntry_metadata[[3]]
-      items_imp <- cntry_metadata[[4]]
+      items_exp <- cntry_metadata[[2]]
+      items_imp <- cntry_metadata[[3]]
       itemList <- items_exp[items_exp %in% items_imp]
       }
     opts <- selectInput("itemName", tags$h4("Pick an Item:"),
@@ -88,9 +91,9 @@ shinyServer(function(input, output, session) {
     
     cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == input$reporterCountry,]$FAOST_CODE), envir = globalenv())
     
-    if (input$dataType == "Import") opts <- cntry_metadata[[5]]
-    if (input$dataType == "Export") opts <- cntry_metadata[[6]]
-    if (input$dataType == "Both") opts <- cntry_metadata[[5]][cntry_metadata[[5]] %in% cntry_metadata[[6]]]
+    if (input$dataType == "Import") opts <- cntry_metadata[[4]]
+    if (input$dataType == "Export") opts <- cntry_metadata[[5]]
+    if (input$dataType == "Both") opts <- cntry_metadata[[4]][cntry_metadata[[4]] %in% cntry_metadata[[5]]]
 
     opts <- sliderInput("yearData", tags$h4("Pick a year"), 
                         min = min(opts), max = max(opts), value = max(opts), step = 1, sep="",
@@ -106,7 +109,7 @@ shinyServer(function(input, output, session) {
     #cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == "Germany",]$FAOST_CODE), envir = globalenv())
     cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == input$reporterCountry,]$FAOST_CODE), envir = globalenv())
     
-    df <- cntry_metadata[[7]]
+    df <- cntry_metadata[[6]]
     dat <- df[df$Item == input$itemName, ]
 
     if (input$elementName == "Value") dat <- dat[dat$Element == "Export Value",]
@@ -122,7 +125,7 @@ shinyServer(function(input, output, session) {
     cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == input$reporterCountry,]$FAOST_CODE), envir = globalenv())
     
     #load(cntry_metadata[[2]])
-    df <- cntry_metadata[[7]]
+    df <- cntry_metadata[[6]]
     dat <- df[df$Item == input$itemName, ]
 
     if (input$elementName == "Value") dat <- dat[dat$Element == "Import Value",]
@@ -432,7 +435,7 @@ shinyServer(function(input, output, session) {
       cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == input$reporterCountry,]$FAOST_CODE), envir = globalenv())
       
       #load(cntry_metadata[[2]])
-      df <- cntry_metadata[[7]]
+      df <- cntry_metadata[[6]]
       dat <- df[df$Item == input$itemName, ]
       
       if (input$elementName == "Value") dat <- dat[dat$Element == "Import Value",]
@@ -566,7 +569,7 @@ shinyServer(function(input, output, session) {
     
     cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == input$reporterCountry,]$FAOST_CODE), envir = globalenv())
     
-    df <- cntry_metadata[[7]]
+    df <- cntry_metadata[[6]]
     dat <- df[df$Year == input$yearData,]
     
     if (input$elementName == "Value") dat <- dat[dat$Element == "Export Value",]
@@ -581,7 +584,7 @@ shinyServer(function(input, output, session) {
     
     cntry_metadata <- get(paste0("metalist",avail_cntry[avail_cntry$country == input$reporterCountry,]$FAOST_CODE), envir = globalenv())
     
-    df <- cntry_metadata[[7]]
+    df <- cntry_metadata[[6]]
     dat <- df[df$Year == input$yearData,]
     
     if (input$elementName == "Value") dat <- dat[dat$Element == "Import Value",]
@@ -609,7 +612,10 @@ shinyServer(function(input, output, session) {
         arrange(sum)
       bars_i$Item <- factor(bars_i$Item, levels = bars_i$Item)
       bars_i$var <- "Import items"
+       if (nrow(bars_i >= 30)) bars_i <- bars_i[1:30,]
+       if (nrow(bars_i < 30)) bars_i <- bars_i
       bars <- bars_i
+
       
       title_exp <- "import items"
       fill_order <- scale_fill_manual(values=c("#FF3300"))
@@ -624,6 +630,8 @@ shinyServer(function(input, output, session) {
         arrange(sum)
       bars_e$Item <- factor(bars_e$Item, levels = bars_e$Item)
       bars_e$var <- "Export items"
+       if (nrow(bars_e >= 30)) bars_e <- bars_e[1:30,]
+       if (nrow(bars_e < 30)) bars_e <- bars_e
       bars <- bars_e
       
       title_exp <- "export items"
@@ -632,6 +640,7 @@ shinyServer(function(input, output, session) {
     if (input$dataType == "Both") {
       
       bars <- rbind(bars_i,bars_e)
+      #bars <- bars[!duplicated(bars)]
       
       fill_order <- scale_fill_manual(values=c("#5087CE","#FF3300"))
       title_exp <- "export and import items"

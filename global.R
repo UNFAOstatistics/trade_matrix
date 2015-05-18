@@ -1,21 +1,49 @@
-# Select countries for the preview - top 5 from each region based on import value on 2012
-# see file country_relection.Rmd
-
+# # Select countries for the preview - top 5 from each region based on import value on 2012
+# # see file country_relection.Rmd
+# 
 # library(readr)
 # library(dplyr)
 # library(stringr)
 # # 
-# # 
-# # Read trade-matrix data by country
-# datasets <- list.files("../shiny_app_raw_data/trade_matrix_preview/", full.names = T)
-# # Remove the path
-# datasets_nopaths <- str_replace_all(datasets, "../shiny_app_raw_data/trade_matrix_preview//", "")
-# filenames <- as.numeric(str_replace_all(datasets_nopaths, ".csv", ""))
+# # Read the batch download trade matrix data
+# # download.file(url = "http://faostat3.fao.org/faostat-bulkdownloads-test/Trade_DetailedTradeMatrix_E_All_Data_(Norm).zip",
+# #               destfile = "~/fao_temp/shiny_app_raw_data/trade_matrix_final/bulk.zip")
+# # unzip("~/fao_temp/shiny_app_raw_data/trade_matrix_final/Trade_DetailedTradeMatrix_E_All_Data_(Norm).zip")
+# # dat <- read_csv("~/fao_temp/shiny_app_raw_data/trade_matrix_final/Trade_DetailedTradeMatrix_E_All_Data_(Norm).csv")
+# # save(dat, file="~/fao_temp/shiny_app_raw_data/trade_matrix_final/dat.R")
+# 
+# load("~/fao_temp/shiny_app_raw_data/trade_matrix_final/dat.R")
+# 
+# names(dat) <- str_replace_all(names(dat), " ", ".")
+# 
+# #ff <- dat[!duplicated(c(dat$Reporter.Country.Code,dat$Reporter.Countries)),]
+# 
+# # Rice milled has a stangre mark in it
+# dat$Item[dat$Item.Code == 30] <- "Rice total (Rice milled equivalent)"
+# 
+# dat$Reporter.Countries[dat$Reporter.Country.Code == 107] <- "Cote d'Ivoire"
+# dat$Reporter.Countries[dat$Reporter.Country.Code == 182] <- "Reunion"
+# 
+# dat$Partner.Countries[dat$Partner.Country.Code == 107] <- "Cote d'Ivoire"
+# dat$Partner.Countries[dat$Partner.Country.Code == 182] <- "Reunion"
+# 
+# 
+# cntry_codes <- unique(dat$Reporter.Country.Code)
+# 
+# # Remove certain countries
+# cntry_codes <- cntry_codes[!(cntry_codes %in% c(17, # Bermuda
+#                                                 250, # Democratic Republic of the Congo
+#                                                 142, # Montserrat
+#                                                 197#, # Sierra Leone
+#                                                 #107, # C<f4>te d'Ivoire
+#                                                 #182 # R<e9>union
+#                                                 ))] 
+# 
 # 
 # avail_cntry <- data.frame()
 # meta_list <- list()
-# for (i in 1:length(datasets)) {
-#   df <- read_csv(datasets[i])
+# for (i in 1:length(cntry_codes)) {
+#   df <- dat[dat$Reporter.Country.Code == cntry_codes[i],]
 #   # Subset data to include only 20 most important items and 20 most important partners in year 2012
 #   im <- df[df$Element %in% c("Import Value","Import Quantity"),]
 #   ex <- df[df$Element %in% c("Export Value","Export Quantity"),]
@@ -32,27 +60,24 @@
 #   ex_items <- ex_ss %>% group_by(Item) %>% 
 #     dplyr::summarise(sum = sum(Value)) %>% 
 #     arrange(-sum)
-#   ims <- im_items$Item[1:20]
-#   exs <- ex_items$Item[1:20]
+#   ims <- im_items$Item[1:30]
+#   exs <- ex_items$Item[1:30]
 #   df <- df[df$Item %in% c(ims,exs),]
-#   names(df) <- str_replace_all(names(df), " ", ".")
 #   #save(df,file=paste0("datasets/",filenames[i],".RData"))
-#   smr <- data.frame(FAOST_CODE = filenames[i],
+#   smr <- data.frame(FAOST_CODE = cntry_codes[i],
 #                     country = unique(df$Reporter.Countries),
-#                     location = paste0("datasets/",filenames[i],".RData"),
 #                     stringsAsFactors = FALSE)
 #   avail_cntry <- rbind(avail_cntry,smr)
 # 
 #   # Create the metalist
 #   country <- unique(df$Reporter.Countries)
-#   location <- paste0("datasets/",filenames[i],".RData")
 #   import_item_list <- ims
 #   export_item_list <- exs
 #   import_range <- import_min:import_max
 #   export_range <- export_min:export_max
 #   data <- df
-#   meta_list <- list(country,location,import_item_list,export_item_list,import_range,export_range,data)
-#   assign(paste0("metalist",filenames[i]),meta_list)
+#   meta_list <- list(country,import_item_list,export_item_list,import_range,export_range,data)
+#   assign(paste0("metalist",cntry_codes[i]),meta_list)
 # }
 # metalists <- apropos("^metalist")
 # rm(list=setdiff(ls(), c("avail_cntry",metalists)))
