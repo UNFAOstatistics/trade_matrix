@@ -374,39 +374,39 @@ shinyServer(function(input, output, session) {
     plotInputMapExport()
   })
   
-  addPopover(session, 
-             "export_map", 
-             "About the map", 
-             content = paste0("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis ornare nunc arcu, vitae consequat sapien sollicitudin vel. Donec ",
-                               "gravida eros ac ante posuere interdum. Mauris vehicula elementum dolor, ut eleifend ex accumsan et. Etiam sed",
-                               "condimentum neque, et suscipit orci. Nunc efficitur tempor suscipit. Donec volutpat tincidunt lacinia. Praesent vel sollicitudin.",
-                              "augue. Cras sit amet diam in arcu scelerisque imperdiet et at mi. Donec rutrum lacinia est, et facilisis odio vehicula quis. ",
-                              "Aliquam erat volutpat. Phasellus hendrerit efficitur ligula, eget luctus enim. In eget dignissim ipsum. Cras rhoncus ligula enim, ",
-                              "sed vehicula ligula pretium eu. Ut eget efficitur turpis. "), 
-              trigger = 'click', placement="top")
-  
-  addPopover(session, 
-             "export_timeseries", 
-             "About the time-series", 
-             content = paste0("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis ornare nunc arcu, vitae consequat sapien sollicitudin vel. Donec ",
-                              "gravida eros ac ante posuere interdum. Mauris vehicula elementum dolor, ut eleifend ex accumsan et. Etiam sed",
-                              "condimentum neque, et suscipit orci. Nunc efficitur tempor suscipit. Donec volutpat tincidunt lacinia. Praesent vel sollicitudin.",
-                              "augue. Cras sit amet diam in arcu scelerisque imperdiet et at mi. Donec rutrum lacinia est, et facilisis odio vehicula quis. ",
-                              "Aliquam erat volutpat. Phasellus hendrerit efficitur ligula, eget luctus enim. In eget dignissim ipsum. Cras rhoncus ligula enim, ",
-                              "sed vehicula ligula pretium eu. Ut eget efficitur turpis. "), 
-             trigger = 'click', placement="top")
-  
-  
-  addPopover(session, 
-             "export_Barchart", 
-             "About the barchart", 
-             content = paste0("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis ornare nunc arcu, vitae consequat sapien sollicitudin vel. Donec ",
-                              "gravida eros ac ante posuere interdum. Mauris vehicula elementum dolor, ut eleifend ex accumsan et. Etiam sed",
-                              "condimentum neque, et suscipit orci. Nunc efficitur tempor suscipit. Donec volutpat tincidunt lacinia. Praesent vel sollicitudin.",
-                              "augue. Cras sit amet diam in arcu scelerisque imperdiet et at mi. Donec rutrum lacinia est, et facilisis odio vehicula quis. ",
-                              "Aliquam erat volutpat. Phasellus hendrerit efficitur ligula, eget luctus enim. In eget dignissim ipsum. Cras rhoncus ligula enim, ",
-                              "sed vehicula ligula pretium eu. Ut eget efficitur turpis. "), 
-             trigger = 'click', placement="top")
+#   addPopover(session, 
+#              "export_map", 
+#              "About the map", 
+#              content = paste0("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis ornare nunc arcu, vitae consequat sapien sollicitudin vel. Donec ",
+#                                "gravida eros ac ante posuere interdum. Mauris vehicula elementum dolor, ut eleifend ex accumsan et. Etiam sed",
+#                                "condimentum neque, et suscipit orci. Nunc efficitur tempor suscipit. Donec volutpat tincidunt lacinia. Praesent vel sollicitudin.",
+#                               "augue. Cras sit amet diam in arcu scelerisque imperdiet et at mi. Donec rutrum lacinia est, et facilisis odio vehicula quis. ",
+#                               "Aliquam erat volutpat. Phasellus hendrerit efficitur ligula, eget luctus enim. In eget dignissim ipsum. Cras rhoncus ligula enim, ",
+#                               "sed vehicula ligula pretium eu. Ut eget efficitur turpis. "), 
+#               trigger = 'click', placement="top")
+#   
+#   addPopover(session, 
+#              "export_timeseries", 
+#              "About the time-series", 
+#              content = paste0("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis ornare nunc arcu, vitae consequat sapien sollicitudin vel. Donec ",
+#                               "gravida eros ac ante posuere interdum. Mauris vehicula elementum dolor, ut eleifend ex accumsan et. Etiam sed",
+#                               "condimentum neque, et suscipit orci. Nunc efficitur tempor suscipit. Donec volutpat tincidunt lacinia. Praesent vel sollicitudin.",
+#                               "augue. Cras sit amet diam in arcu scelerisque imperdiet et at mi. Donec rutrum lacinia est, et facilisis odio vehicula quis. ",
+#                               "Aliquam erat volutpat. Phasellus hendrerit efficitur ligula, eget luctus enim. In eget dignissim ipsum. Cras rhoncus ligula enim, ",
+#                               "sed vehicula ligula pretium eu. Ut eget efficitur turpis. "), 
+#              trigger = 'click', placement="top")
+#   
+#   
+#   addPopover(session, 
+#              "export_Barchart", 
+#              "About the barchart", 
+#              content = paste0("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis ornare nunc arcu, vitae consequat sapien sollicitudin vel. Donec ",
+#                               "gravida eros ac ante posuere interdum. Mauris vehicula elementum dolor, ut eleifend ex accumsan et. Etiam sed",
+#                               "condimentum neque, et suscipit orci. Nunc efficitur tempor suscipit. Donec volutpat tincidunt lacinia. Praesent vel sollicitudin.",
+#                               "augue. Cras sit amet diam in arcu scelerisque imperdiet et at mi. Donec rutrum lacinia est, et facilisis odio vehicula quis. ",
+#                               "Aliquam erat volutpat. Phasellus hendrerit efficitur ligula, eget luctus enim. In eget dignissim ipsum. Cras rhoncus ligula enim, ",
+#                               "sed vehicula ligula pretium eu. Ut eget efficitur turpis. "), 
+#              trigger = 'click', placement="top")
   
 
   output$dlMap <- downloadHandler(
@@ -610,6 +610,7 @@ shinyServer(function(input, output, session) {
         group_by(Item) %>% 
         dplyr::summarise(sum = sum(Value)) %>% 
         arrange(sum)
+      # bars_i <- bars_i[!is.na(bars_i$Item),]
       bars_i$Item <- factor(bars_i$Item, levels = bars_i$Item)
       bars_i$var <- "Import items"
        if (nrow(bars_i >= 30)) bars_i <- bars_i[1:30,]
@@ -628,6 +629,7 @@ shinyServer(function(input, output, session) {
         group_by(Item) %>% 
         dplyr::summarise(sum = sum(Value)) %>% 
         arrange(sum)
+      # bars_e <- bars_e[!is.na(bars_e$Item),]
       bars_e$Item <- factor(bars_e$Item, levels = bars_e$Item)
       bars_e$var <- "Export items"
        if (nrow(bars_e >= 30)) bars_e <- bars_e[1:30,]
@@ -646,7 +648,7 @@ shinyServer(function(input, output, session) {
       title_exp <- "export and import items"
     }
     
-
+    bars <- bars[!is.na(bars$Item),]
     
     if (input$elementName == "Quantity") legend_title <- "Quantity in tonnes"
     if (input$elementName == "Value") legend_title <- "Value in 1000 US$"

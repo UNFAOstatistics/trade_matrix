@@ -1,6 +1,6 @@
-# # Select countries for the preview - top 5 from each region based on import value on 2012
-# # see file country_relection.Rmd
-# 
+# # # Select countries for the preview - top 5 from each region based on import value on 2012
+# # # see file country_relection.Rmd
+# # 
 # library(readr)
 # library(dplyr)
 # library(stringr)
@@ -10,8 +10,8 @@
 # #               destfile = "~/fao_temp/shiny_app_raw_data/trade_matrix_final/bulk.zip")
 # # unzip("~/fao_temp/shiny_app_raw_data/trade_matrix_final/Trade_DetailedTradeMatrix_E_All_Data_(Norm).zip")
 # # dat <- read_csv("~/fao_temp/shiny_app_raw_data/trade_matrix_final/Trade_DetailedTradeMatrix_E_All_Data_(Norm).csv")
-# # save(dat, file="~/fao_temp/shiny_app_raw_data/trade_matrix_final/dat.R")
-# 
+# # save(dat, file="~/fao_temp/shiny_app_raw_data/trade_matrix_final/dat.RData")
+# # 
 # load("~/fao_temp/shiny_app_raw_data/trade_matrix_final/dat.R")
 # 
 # names(dat) <- str_replace_all(names(dat), " ", ".")
@@ -60,6 +60,8 @@
 #   ex_items <- ex_ss %>% group_by(Item) %>% 
 #     dplyr::summarise(sum = sum(Value)) %>% 
 #     arrange(-sum)
+#   im_items <- im_items[!is.na(im_items)]
+#   ex_items <- ex_items[!is.na(ex_items)]
 #   ims <- im_items$Item[1:30]
 #   exs <- ex_items$Item[1:30]
 #   df <- df[df$Item %in% c(ims,exs),]
